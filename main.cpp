@@ -2,19 +2,14 @@
 #include "DualTrits.h"
 
 int main() {
-    for (int e=0;e<3;e++) {
-        for (int m=0;m<3;m++) {
-            DualTrits digit(m,e);
-            std::cout << "e = " << e << ", m = " << m <<
-                " DualTrits= "<< digit.toDouble() << std::endl;
+    for (uint8_t exponent = 0; exponent < 3; exponent++) {
+        for (int mantissa = 0; mantissa < 3; mantissa++) {
+            DualTrits digit(mantissa, exponent);
+            std::cout << "DualTrit = " << digit.toString() << std::endl;
+            std::cout << "\tDouble = "<< digit.toDoubleString() << std::endl;
+            std::cout << "\tMPreal = "<< digit.toMPrealString() << std::endl;
         }
     }
-    for (int e=0;e<3;e++) {
-        for (int m=0;m<3;m++) {
-            DualTrits digit(m,e);
-            std::cout << "e = " << e << ", m = " << m <<
-                " DualTrits MPreal= "<< digit.toMPreal() << std::endl;
-        }
-    }
+
     return 0;
 }
