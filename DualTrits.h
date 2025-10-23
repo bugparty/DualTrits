@@ -13,11 +13,11 @@
 #include <sstream>
 #include <mpreal.h>
 
-typedef int8_t wide_t;
-
 class DualTrits {
 public:
+    typedef int8_t wide_t;
     static constexpr wide_t BASE = 3;
+
     constexpr explicit DualTrits(wide_t m = 0, int e = 0) noexcept : exponent(e), mantissa(m) {
     }
 
