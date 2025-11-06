@@ -6,14 +6,14 @@
 
 typedef int8_t wide_t;
 
-std::string DualTrits::toString() {
+std::string DualTrits::toString() const noexcept {
     std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
     oss << "exponent = " << bits[3] << bits[2] << ", mantissa = " << bits[1] << bits[0];
     return oss.str();
 }
 
-std::string DualTrits::toFancyString() {
+std::string DualTrits::toFancyString() const noexcept {
     std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
     oss << "          ╭────┬────╮\n";

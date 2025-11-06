@@ -22,8 +22,8 @@ public:
 
     constexpr explicit DualTrits(wide_t m = 0, int e = 0) noexcept : exponent(e), mantissa(m) {}
 
-    std::string toString();
-    std::string toFancyString();
+    std::string toString() const noexcept;
+    std::string toFancyString() const noexcept;
 
     float toFloat();
     double toDouble();
