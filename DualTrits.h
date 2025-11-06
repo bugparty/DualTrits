@@ -11,6 +11,8 @@
 #include <limits>
 #include <ostream>
 #include <sstream>
+#include <bitset>
+
 #include <mpreal.h>
 
 class DualTrits {
@@ -21,6 +23,7 @@ public:
     constexpr explicit DualTrits(wide_t m = 0, int e = 0) noexcept : exponent(e), mantissa(m) {}
 
     std::string toString();
+    std::string toFancyString();
 
     float toFloat();
     double toDouble();
@@ -34,6 +37,9 @@ public:
     DualTrits operator-(const DualTrits& other) const;
     DualTrits operator*(const DualTrits& other) const;
     DualTrits operator/(const DualTrits& other) const;
+
+    std::bitset<4> asBits() const noexcept;
+    std::bitset<4> asPackedBits() const noexcept;
 
 private:
     template<typename T>

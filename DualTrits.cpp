@@ -7,8 +7,19 @@
 typedef int8_t wide_t;
 
 std::string DualTrits::toString() {
+    std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
-    oss << "exponent = " << this->exponent << ", mantissa = " << this->mantissa;
+    oss << "exponent = " << bits[3] << bits[2] << ", mantissa = " << bits[1] << bits[0];
+    return oss.str();
+}
+
+std::string DualTrits::toFancyString() {
+    std::bitset<4> bits = this->asBits();
+    std::ostringstream oss;
+    oss << "          ╭────┬────╮\n";
+    oss << "DualTrit: │ " << bits[3] << bits[2] << " │ " << bits[1] << bits[0] << " │\n";
+    oss << "          ╰────┴────╯\n";
+    oss << "            e    m";
     return oss.str();
 }
 
@@ -125,3 +136,16 @@ template<typename T, wide_t BASE>
             return 0;
     }
 }
+
+std::bitset<4> DualTrits::asBits() const noexcept {
+    std::bitset<4> bits;
+    bits |= 4 * this->exponent + this->mantissa;
+    return bits;
+}
+
+std::bitset<4> DualTrits::asPackedBits() const noexcept {
+    std::bitset<4> bits;
+    bits |= 3 * this->exponent + this->mantissa;
+    return bits;
+}
+
