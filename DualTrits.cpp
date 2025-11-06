@@ -12,15 +12,15 @@ std::string DualTrits::toString() {
     return oss.str();
 }
 
-float DualTrits::toFloat() {
+float DualTrits::toFloat() const noexcept {
     return this->to<float>();
 }
 
-double DualTrits::toDouble() {
+double DualTrits::toDouble() const noexcept {
     return this->to<double>();
 }
 
-mpfr::mpreal DualTrits::toMPreal() const {
+mpfr::mpreal DualTrits::toMPreal() const noexcept {
     if (this->mantissa == 0) {
         if (this->exponent == 0) {
             return mpfr::mpreal{0};

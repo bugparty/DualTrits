@@ -22,9 +22,9 @@ public:
 
     std::string toString();
 
-    float toFloat();
-    double toDouble();
-    mpfr::mpreal toMPreal() const;
+    float toFloat() const noexcept;
+    double toDouble() const noexcept;
+    mpfr::mpreal toMPreal() const noexcept;
 
     std::string toFloatString();
     std::string toDoubleString();
