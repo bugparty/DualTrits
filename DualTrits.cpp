@@ -155,14 +155,10 @@ template<typename T, wide_t BASE>
 }
 
 std::bitset<4> DualTrits::asBits() const noexcept {
-    std::bitset<4> bits;
-    bits |= 4 * this->exponent + this->mantissa;
-    return bits;
+    return std::bitset<4>(4 * this->exponent + this->mantissa);
 }
 
 std::bitset<4> DualTrits::asPackedBits() const noexcept {
-    std::bitset<4> bits;
-    bits |= 3 * this->exponent + this->mantissa;
-    return bits;
+    return std::bitset<4>(3 * this->exponent + this->mantissa);
 }
 
