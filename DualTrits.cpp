@@ -131,11 +131,12 @@ template<typename T>
         return oss.str();
     }
     wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    wide_t reinterpt_exponent = reinterpt_digit(mantissa);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
 
     T result = convertedMantissa * convertedExponent;
-    oss << convertedExponent << " * " << convertedMantissa << " = " << result;
+    oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedMantissa << " = " << result;
     return oss.str();
 }
 
