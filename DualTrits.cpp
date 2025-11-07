@@ -52,15 +52,15 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
     return mantissa * mpfr::pow(base,exponent);
 }
 
-std::string DualTrits::toFloatString() {
+std::string DualTrits::toFloatString() const noexcept {
     return this->toAsString<float>();
 }
 
-std::string DualTrits::toDoubleString() {
+std::string DualTrits::toDoubleString() const noexcept {
     return this->toAsString<double>();
 }
 
-std::string DualTrits::toMPrealString() {
+std::string DualTrits::toMPrealString() const noexcept {
     return toMPreal().toString();
 }
 

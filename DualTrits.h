@@ -29,9 +29,9 @@ public:
     double toDouble() const noexcept;
     mpfr::mpreal toMPreal() const noexcept;
 
-    std::string toFloatString();
-    std::string toDoubleString();
-    std::string toMPrealString();
+    std::string toFloatString() const noexcept;
+    std::string toDoubleString() const noexcept;
+    std::string toMPrealString() const noexcept;
 
     DualTrits operator+(const DualTrits& other) const;
     DualTrits operator-(const DualTrits& other) const;
