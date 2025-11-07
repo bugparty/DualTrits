@@ -7,14 +7,14 @@
 
 typedef int8_t wide_t;
 
-std::string DualTrits::toString() const noexcept {
+std::string DualTrits::toString() const {
     std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
     oss << "exponent = " << bits[3] << bits[2] << ", mantissa = " << bits[1] << bits[0];
     return oss.str();
 }
 
-std::string DualTrits::toFancyString() const noexcept {
+std::string DualTrits::toFancyString() const {
     std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
     oss << "          ╭────┬────╮\n";
@@ -52,15 +52,15 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
     return mantissa * mpfr::pow(base,exponent);
 }
 
-std::string DualTrits::toFloatString() const noexcept {
+std::string DualTrits::toFloatString() const {
     return this->toAsString<float>();
 }
 
-std::string DualTrits::toDoubleString() const noexcept {
+std::string DualTrits::toDoubleString() const {
     return this->toAsString<double>();
 }
 
-std::string DualTrits::toMPrealString() const noexcept {
+std::string DualTrits::toMPrealString() const {
     return toMPreal().toString();
 }
 
@@ -106,7 +106,7 @@ template<typename T>
 }
 
 template<typename T>
-[[nodiscard]] std::string DualTrits::toAsString() const noexcept {
+[[nodiscard]] std::string DualTrits::toAsString() const {
     std::ostringstream oss;
 
     if (this->mantissa == 0) {
