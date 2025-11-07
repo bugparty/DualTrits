@@ -86,7 +86,7 @@ template<typename T>
         if (std::numeric_limits<T>::has_infinity) {
             return -std::numeric_limits<T>::infinity();
         }
-        return std::numeric_limits<T>::min();
+        return std::numeric_limits<T>::lowest();
     }
     wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
@@ -115,7 +115,7 @@ template<typename T>
         if (std::numeric_limits<T>::has_infinity) {
             oss << -std::numeric_limits<T>::infinity();
         } else {
-            oss << std::numeric_limits<T>::min();
+            oss << std::numeric_limits<T>::lowest();
         }
         return oss.str();
     }
