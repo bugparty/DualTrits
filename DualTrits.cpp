@@ -3,6 +3,7 @@
 //
 
 #include "DualTrits.h"
+#include <limits>
 
 typedef int8_t wide_t;
 
@@ -12,20 +13,20 @@ std::string DualTrits::toString() {
     return oss.str();
 }
 
-float DualTrits::toFloat() {
+float DualTrits::toFloat() const noexcept {
     return this->to<float>();
 }
 
-double DualTrits::toDouble() {
+double DualTrits::toDouble() const noexcept {
     return this->to<double>();
 }
 
-mpfr::mpreal DualTrits::toMPreal() const {
-    if (this->exponent == 0) {
-        if (this->mantissa == 0) {
+mpfr::mpreal DualTrits::toMPreal() const noexcept {
+    if (this->mantissa == 0) {
+        if (this->exponent == 0) {
             return mpfr::mpreal{0};
         }
-        if (this->mantissa == 1) {
+        if (this->exponent == 1) {
             mpfr::mpreal inf;
             inf.setInf();
             return inf;
@@ -71,19 +72,25 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
 
 template<typename T>
 [[nodiscard]] constexpr T DualTrits::to() const noexcept {
-    if (this->exponent == 0) {
-        if (this->mantissa == 0) {
+    if (this->mantissa == 0) {
+        if (this->exponent == 0) {
             return T(0);
         }
-        if (this->mantissa == 1) {
+
+        if (this->exponent == 1) {
+            if (std::numeric_limits<T>::has_infinity) {
+                return std::numeric_limits<T>::infinity();
+            }
             return std::numeric_limits<T>::max();
+        }
+        if (std::numeric_limits<T>::has_infinity) {
+            return -std::numeric_limits<T>::infinity();
         }
         return std::numeric_limits<T>::lowest();
     }
-    auto reinterped_mantissa = reinterpt_digit(mantissa);
-    T convertedMantissa = static_cast<T>(reinterped_mantissa);
+    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
-    std::cout << convertedExponent << " * " << convertedMantissa << " = ";
     return convertedMantissa * convertedExponent;
 }
 
@@ -91,20 +98,29 @@ template<typename T>
 [[nodiscard]] std::string DualTrits::toAsString() const noexcept {
     std::ostringstream oss;
 
-    if (this->exponent == 0) {
-        if (this->mantissa == 0) {
+    if (this->mantissa == 0) {
+        if (this->exponent == 0) {
             oss << T(0);
             return oss.str();
         }
-        if (this->mantissa == 1) {
-            oss << std::numeric_limits<T>::max();
+        if (this->exponent == 1) {
+            if (std::numeric_limits<T>::has_infinity) {
+                oss << std::numeric_limits<T>::infinity();
+            } else {
+                oss << std::numeric_limits<T>::max();
+            }
             return oss.str();
         }
-        oss << std::numeric_limits<T>::lowest();
+
+        if (std::numeric_limits<T>::has_infinity) {
+            oss << -std::numeric_limits<T>::infinity();
+        } else {
+            oss << std::numeric_limits<T>::lowest();
+        }
         return oss.str();
     }
-    auto reinterped_mantissa = reinterpt_digit(mantissa);
-    T convertedMantissa = static_cast<T>(reinterped_mantissa);
+    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
 
     T result = convertedMantissa * convertedExponent;
