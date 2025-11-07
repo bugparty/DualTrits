@@ -3,6 +3,7 @@
 //
 
 #include "DualTrits.h"
+#include <limits>
 
 typedef int8_t wide_t;
 
@@ -75,12 +76,19 @@ template<typename T>
         if (this->exponent == 0) {
             return T(0);
         }
+
         if (this->exponent == 1) {
+            if (std::numeric_limits<T>::has_infinity) {
+                return std::numeric_limits<T>::infinity();
+            }
+            return std::numeric_limits<T>::max();
+        }
+        if (std::numeric_limits<T>::has_infinity) {
             return std::numeric_limits<T>::infinity();
         }
-        return -std::numeric_limits<T>::infinity();
+        return std::numeric_limits<T>::max();
     }
-    auto reinterpt_mantissa = reinterpt_digit(mantissa);
+    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
     return convertedMantissa * convertedExponent;
@@ -102,8 +110,8 @@ template<typename T>
         oss << -std::numeric_limits<T>::infinity();
         return oss.str();
     }
-    auto reinterpt_mantissa = reinterpt_digit(mantissa);
-    auto reinterpt_exponent = reinterpt_digit(exponent);
+    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    wide_t reinterpt_exponent = reinterpt_digit(exponent);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
 
