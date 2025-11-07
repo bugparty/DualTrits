@@ -25,9 +25,9 @@ public:
     std::string toString() const noexcept;
     std::string toFancyString() const noexcept;
 
-    float toFloat();
-    double toDouble();
-    mpfr::mpreal toMPreal() const;
+    float toFloat() const noexcept;
+    double toDouble() const noexcept;
+    mpfr::mpreal toMPreal() const noexcept;
 
     std::string toFloatString();
     std::string toDoubleString();
