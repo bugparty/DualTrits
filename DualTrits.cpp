@@ -84,9 +84,9 @@ template<typename T>
             return std::numeric_limits<T>::max();
         }
         if (std::numeric_limits<T>::has_infinity) {
-            return std::numeric_limits<T>::infinity();
+            return -std::numeric_limits<T>::infinity();
         }
-        return std::numeric_limits<T>::max();
+        return std::numeric_limits<T>::min();
     }
     wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
@@ -104,10 +104,19 @@ template<typename T>
             return oss.str();
         }
         if (this->exponent == 1) {
-            oss << std::numeric_limits<T>::infinity();
+            if (std::numeric_limits<T>::has_infinity) {
+                oss << std::numeric_limits<T>::infinity();
+            } else {
+                oss << std::numeric_limits<T>::max();
+            }
             return oss.str();
         }
-        oss << -std::numeric_limits<T>::infinity();
+
+        if (std::numeric_limits<T>::has_infinity) {
+            oss << -std::numeric_limits<T>::infinity();
+        } else {
+            oss << std::numeric_limits<T>::min();
+        }
         return oss.str();
     }
     wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
