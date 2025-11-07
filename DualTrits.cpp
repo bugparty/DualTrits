@@ -116,7 +116,7 @@ template<typename T>
     T convertedExponent = pow_base<T, BASE>(exponent);
 
     T result = convertedMantissa * convertedExponent;
-    oss << "(3 ** " << (int) reinterpt_exponent << ") * " << convertedMantissa << " = " << result;
+    oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedMantissa << " = " << result;
     return oss.str();
 }
 
