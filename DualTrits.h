@@ -11,6 +11,8 @@
 #include <limits>
 #include <ostream>
 #include <sstream>
+#include <bitset>
+
 #include <mpreal.h>
 
 class DualTrits {
@@ -20,27 +22,33 @@ public:
 
     constexpr explicit DualTrits(wide_t m = 0, int e = 0) noexcept : exponent(e), mantissa(m) {}
 
-    std::string toString();
+    std::string toString() const;
+    std::string toFancyString() const;
 
     float toFloat() const noexcept;
     double toDouble() const noexcept;
     mpfr::mpreal toMPreal() const noexcept;
 
-    std::string toFloatString();
-    std::string toDoubleString();
-    std::string toMPrealString();
+    std::string toFloatString() const;
+    std::string toDoubleString() const;
+    std::string toMPrealString() const;
 
     DualTrits operator+(const DualTrits& other) const;
     DualTrits operator-(const DualTrits& other) const;
     DualTrits operator*(const DualTrits& other) const;
     DualTrits operator/(const DualTrits& other) const;
 
+    std::bitset<4> asBits() const noexcept;
+    unsigned int asRawBits() const noexcept;
+    std::bitset<4> asPackedBits() const noexcept;
+    unsigned int asRawPackedBits() const noexcept;
+
 private:
     template<typename T>
     [[nodiscard]] constexpr T to() const noexcept;
 
     template<typename T>
-    [[nodiscard]] std::string toAsString() const noexcept;
+    [[nodiscard]] std::string toAsString() const;
 
     [[nodiscard]] static wide_t constexpr reinterpt_digit(wide_t digit) noexcept {
         if (digit == 2) {

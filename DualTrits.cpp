@@ -7,9 +7,20 @@
 
 typedef int8_t wide_t;
 
-std::string DualTrits::toString() {
+std::string DualTrits::toString() const {
+    std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
-    oss << "exponent = " << this->exponent << ", mantissa = " << this->mantissa;
+    oss << "exponent = " << bits[3] << bits[2] << ", mantissa = " << bits[1] << bits[0];
+    return oss.str();
+}
+
+std::string DualTrits::toFancyString() const {
+    std::bitset<4> bits = this->asBits();
+    std::ostringstream oss;
+    oss << "          ╭────┬────╮\n";
+    oss << "DualTrit: │ " << bits[3] << bits[2] << " │ " << bits[1] << bits[0] << " │\n";
+    oss << "          ╰────┴────╯\n";
+    oss << "            e    m";
     return oss.str();
 }
 
@@ -41,15 +52,15 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
     return mantissa * mpfr::pow(base,exponent);
 }
 
-std::string DualTrits::toFloatString() {
+std::string DualTrits::toFloatString() const {
     return this->toAsString<float>();
 }
 
-std::string DualTrits::toDoubleString() {
+std::string DualTrits::toDoubleString() const {
     return this->toAsString<double>();
 }
 
-std::string DualTrits::toMPrealString() {
+std::string DualTrits::toMPrealString() const {
     return toMPreal().toString();
 }
 
@@ -95,7 +106,7 @@ template<typename T>
 }
 
 template<typename T>
-[[nodiscard]] std::string DualTrits::toAsString() const noexcept {
+[[nodiscard]] std::string DualTrits::toAsString() const {
     std::ostringstream oss;
 
     if (this->mantissa == 0) {
@@ -120,11 +131,12 @@ template<typename T>
         return oss.str();
     }
     wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    wide_t reinterpt_exponent = reinterpt_digit(exponent);
     T convertedMantissa = static_cast<T>(reinterpt_mantissa);
     T convertedExponent = pow_base<T, BASE>(exponent);
 
     T result = convertedMantissa * convertedExponent;
-    oss << convertedExponent << " * " << convertedMantissa << " = " << result;
+    oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedMantissa << " = " << result;
     return oss.str();
 }
 
@@ -140,4 +152,20 @@ template<typename T, wide_t BASE>
         default:
             return 0;
     }
+}
+
+std::bitset<4> DualTrits::asBits() const noexcept {
+    return std::bitset<4>(4 * this->exponent + this->mantissa);
+}
+
+unsigned int DualTrits::asRawBits() const noexcept {
+    return 4 * this->exponent + this->mantissa;
+}
+
+std::bitset<4> DualTrits::asPackedBits() const noexcept {
+    return std::bitset<4>(3 * this->exponent + this->mantissa);
+}
+
+unsigned int DualTrits::asRawPackedBits() const noexcept {
+    return 3 * this->exponent + this->mantissa;
 }
