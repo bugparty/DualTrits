@@ -39,7 +39,9 @@ public:
     DualTrits operator/(const DualTrits& other) const;
 
     std::bitset<4> asBits() const noexcept;
+    unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
+    unsigned int asRawPackedBits() const noexcept;
 
 private:
     template<typename T>

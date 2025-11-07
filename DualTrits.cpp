@@ -158,7 +158,14 @@ std::bitset<4> DualTrits::asBits() const noexcept {
     return std::bitset<4>(4 * this->exponent + this->mantissa);
 }
 
+unsigned int DualTrits::asRawBits() const noexcept {
+    return 4 * this->exponent + this->mantissa;
+}
+
 std::bitset<4> DualTrits::asPackedBits() const noexcept {
     return std::bitset<4>(3 * this->exponent + this->mantissa);
 }
 
+unsigned int DualTrits::asRawPackedBits() const noexcept {
+    return 3 * this->exponent + this->mantissa;
+}
