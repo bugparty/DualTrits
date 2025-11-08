@@ -10,7 +10,7 @@ typedef int8_t wide_t;
 std::string DualTrits::toString() const {
     std::bitset<4> bits = this->asBits();
     std::ostringstream oss;
-    oss << "exponent = " << bits[3] << bits[2] << ", mantissa = " << bits[1] << bits[0];
+    oss << "exponent = " << bits[3] << bits[2] << ", direction = " << bits[1] << bits[0];
     return oss.str();
 }
 
@@ -20,7 +20,7 @@ std::string DualTrits::toFancyString() const {
     oss << "          ╭────┬────╮\n";
     oss << "DualTrit: │ " << bits[3] << bits[2] << " │ " << bits[1] << bits[0] << " │\n";
     oss << "          ╰────┴────╯\n";
-    oss << "            e    m";
+    oss << "            e    d";
     return oss.str();
 }
 
@@ -33,7 +33,7 @@ double DualTrits::toDouble() const noexcept {
 }
 
 mpfr::mpreal DualTrits::toMPreal() const noexcept {
-    if (this->mantissa == 0) {
+    if (this->direction == 0) {
         if (this->exponent == 0) {
             return mpfr::mpreal{0};
         }
@@ -47,9 +47,9 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
         return mpfr::mpreal{neginf};
     }
     mpfr::mpreal base{BASE};
-    mpfr::mpreal mantissa{reinterpt_digit(this->mantissa)};
+    mpfr::mpreal direction{reinterpt_digit(this->direction)};
     mpfr::mpreal exponent{reinterpt_digit(this->exponent)};
-    return mantissa * mpfr::pow(base,exponent);
+    return direction * mpfr::pow(base,exponent);
 }
 
 std::string DualTrits::toFloatString() const {
@@ -83,7 +83,7 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
 
 template<typename T>
 [[nodiscard]] constexpr T DualTrits::to() const noexcept {
-    if (this->mantissa == 0) {
+    if (this->direction == 0) {
         if (this->exponent == 0) {
             return T(0);
         }
@@ -99,17 +99,17 @@ template<typename T>
         }
         return std::numeric_limits<T>::lowest();
     }
-    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
-    T convertedMantissa = static_cast<T>(reinterpt_mantissa);
+    wide_t reinterpt_direction = reinterpt_digit(direction);
+    T convertedDirection = static_cast<T>(reinterpt_direction);
     T convertedExponent = pow_base<T, BASE>(exponent);
-    return convertedMantissa * convertedExponent;
+    return convertedDirection * convertedExponent;
 }
 
 template<typename T>
 [[nodiscard]] std::string DualTrits::toAsString() const {
     std::ostringstream oss;
 
-    if (this->mantissa == 0) {
+    if (this->direction == 0) {
         if (this->exponent == 0) {
             oss << T(0);
             return oss.str();
@@ -130,13 +130,13 @@ template<typename T>
         }
         return oss.str();
     }
-    wide_t reinterpt_mantissa = reinterpt_digit(mantissa);
+    wide_t reinterpt_direction = reinterpt_digit(direction);
     wide_t reinterpt_exponent = reinterpt_digit(exponent);
-    T convertedMantissa = static_cast<T>(reinterpt_mantissa);
+    T convertedDirection = static_cast<T>(reinterpt_direction);
     T convertedExponent = pow_base<T, BASE>(exponent);
 
-    T result = convertedMantissa * convertedExponent;
-    oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedMantissa << " = " << result;
+    T result = convertedDirection * convertedExponent;
+    oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedDirection << " = " << result;
     return oss.str();
 }
 
@@ -155,17 +155,17 @@ template<typename T, wide_t BASE>
 }
 
 std::bitset<4> DualTrits::asBits() const noexcept {
-    return std::bitset<4>(4 * this->exponent + this->mantissa);
+    return std::bitset<4>(4 * this->exponent + this->direction);
 }
 
 unsigned int DualTrits::asRawBits() const noexcept {
-    return 4 * this->exponent + this->mantissa;
+    return 4 * this->exponent + this->direction;
 }
 
 std::bitset<4> DualTrits::asPackedBits() const noexcept {
-    return std::bitset<4>(3 * this->exponent + this->mantissa);
+    return std::bitset<4>(3 * this->exponent + this->direction);
 }
 
 unsigned int DualTrits::asRawPackedBits() const noexcept {
-    return 3 * this->exponent + this->mantissa;
+    return 3 * this->exponent + this->direction;
 }

@@ -20,7 +20,7 @@ public:
     typedef int8_t wide_t;
     static constexpr wide_t BASE = 3;
 
-    constexpr explicit DualTrits(wide_t m = 0, int e = 0) noexcept : exponent(e), mantissa(m) {}
+    constexpr explicit DualTrits(int e = 0, wide_t d = 0) noexcept : exponent(e), direction(d) {}
 
     std::string toString() const;
     std::string toFancyString() const;
@@ -67,7 +67,7 @@ private:
     [[nodiscard]] T constexpr pow_base(wide_t exp) const noexcept;
 
     unsigned int exponent : 2;
-    unsigned int mantissa : 2;
+    unsigned int direction : 2;
 };
 
 #endif //PROJECT_FLOAT_DUALTRITS_H
