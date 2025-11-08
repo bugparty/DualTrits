@@ -3,8 +3,8 @@
 
 int main() {
     for (uint8_t exponent = 0; exponent < 3; exponent++) {
-        for (int mantissa = 0; mantissa < 3; mantissa++) {
-            DualTrits digit(mantissa, exponent);
+        for (int direction = 0; direction < 3; direction++) {
+            DualTrits digit(exponent, direction);
             std::cout << digit.toFancyString() << std::endl;
             std::cout << std::endl;
             std::cout << "\tAs Packed Bits = "<< digit.asPackedBits().to_string() << std::endl;
