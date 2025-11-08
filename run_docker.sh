@@ -8,6 +8,5 @@ echo '============================'
 echo
 
 echo 'main.cpp Output:'
-echo '============================'
+echo
 docker run --rm 'dual-trits:latest'
-echo '============================'
