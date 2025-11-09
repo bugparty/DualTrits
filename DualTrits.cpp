@@ -140,7 +140,7 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
         
         if (std::abs(kValidMul3Values[l]) > std::abs(kValidMul3Values[l-1])){
             return divide3(kValidMul3Values[l]);
-        }else{
+        } else {
             return divide3(kValidMul3Values[l-1]);
         }
     }
