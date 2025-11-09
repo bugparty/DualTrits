@@ -12,6 +12,7 @@
 #include <ostream>
 #include <sstream>
 #include <bitset>
+#include <stdexcept>
 
 #include <mpreal.h>
 

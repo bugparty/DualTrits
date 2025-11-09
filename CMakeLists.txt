@@ -64,6 +64,14 @@ target_link_libraries(multiplication_tests PRIVATE GTest::gtest GTest::gtest_mai
 target_include_directories(multiplication_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(multiplication_tests)
 
+add_executable(division_tests
+        tests/test_division.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(division_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(division_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(division_tests)
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================

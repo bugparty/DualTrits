@@ -79,11 +79,11 @@ DualTrits::compute_t DualTrits::mul3() const {
     return 0;
 }
 /*
-our number range is -inf, -3,-1,-1/3,0,1/3,1,3,inf
-if all multiplied by 3, we get -inf,-9,-3,-1,0,1,3,9,inf
-if the sum is smaller than -9, return -inf
-if the sum is greater than 9, return inf
-else, we need to round them back to dual trits
+* our number range is -inf, -3,-1,-1/3,0,1/3,1,3,inf
+* if all multiplied by 3, we get -inf,-9,-3,-1,0,1,3,9,inf
+* if the sum is smaller than -9, return -inf
+* if the sum is greater than 9, return inf
+* else, we need to round them back to dual trits
 
 */
 namespace {
@@ -243,9 +243,93 @@ DualTrits DualTrits::operator*(const DualTrits& other) const {
     return DualTrits(new_exp, new_dir);
 }
 
+/*
+ * Division operator for DualTrits
+ * 
+ * Mathematical formula:
+ * a / b = (direction_a / direction_b) * 3^(exponent_a - exponent_b)
+ * 
+ * Special cases:
+ * - x / 0: throws std::domain_error (division by zero)
+ * - 0 / 0: throws std::domain_error (indeterminate form)
+ * - inf / inf: returns 1 (convention for this number system)
+ * - 0 / x: returns 0 (where x != 0)
+ * - inf / finite: returns inf (with appropriate sign)
+ * - finite / inf: returns 0
+ */
 DualTrits DualTrits::operator/(const DualTrits& other) const {
-    //exact compute
-    return DualTrits{};
+    // Handle division by zero (including 0/0)
+    if (other.direction == 0 && other.exponent == 0) {
+        throw std::domain_error("Division by zero");
+    }
+    
+    // Handle 0 / x (where x != 0)
+    if (direction == 0 && exponent == 0) {
+        return DualTrits(0, 0); // 0
+    }
+    
+    // Handle special values (inf, -inf)
+    if (isSpecial() || other.isSpecial()) {
+        // inf / inf = 1 (by convention)
+        if (isSpecial() && other.isSpecial()) {
+            // Determine the sign of the result
+            int sign_a = (exponent == 1) ? 1 : -1;  // exponent=1 -> +inf, exponent=2 -> -inf
+            int sign_b = (other.exponent == 1) ? 1 : -1;
+            int result_sign = sign_a * sign_b;
+            
+            // Return 1 or -1 based on sign
+            return DualTrits(0, result_sign > 0 ? 1 : 2);
+        }
+        
+        // finite / inf = 0
+        if (other.isSpecial()) {
+            return DualTrits(0, 0); // 0
+        }
+        
+        // inf / finite = inf (with appropriate sign)
+        int sign_a = (exponent == 1) ? 1 : -1;
+        int sign_b = reinterpt_digit(other.direction);
+        int result_sign = sign_a * sign_b;
+        
+        if (result_sign > 0) {
+            return DualTrits(1, 0); // +inf
+        } else {
+            return DualTrits(2, 0); // -inf
+        }
+    }
+    
+    // Normal case: both are finite non-zero values
+    // Compute new direction (sign)
+    int dir_a = reinterpt_digit(direction);
+    int dir_b = reinterpt_digit(other.direction);
+    int new_dir_val = dir_a * dir_b; // Sign of a/b = sign(a) * sign(b)
+    
+    // Compute new exponent (subtraction for division)
+    int exp_a = reinterpt_exponent(exponent);
+    int exp_b = reinterpt_exponent(other.exponent);
+    int new_exp_val = exp_a - exp_b;
+    
+    // Handle exponent overflow (> 1 means result >= 3^2 = 9)
+    // Example: 3 / (1/3) = 9 -> overflow to inf
+    if (new_exp_val > 1) {
+        if (new_dir_val > 0) {
+            return DualTrits(1, 0); // +inf
+        } else {
+            return DualTrits(2, 0); // -inf
+        }
+    }
+    
+    // Handle exponent underflow (< -1 means result <= 3^-2 = 1/9)
+    // Example: 1/3 / 3 = 1/9 -> underflow to 0
+    if (new_exp_val < -1) {
+        return DualTrits(0, 0); // 0
+    }
+    
+    // Construct result within valid range
+    wide_t new_exp = encode_exponent(new_exp_val);
+    wide_t new_dir = encode_direction(new_dir_val);
+    
+    return DualTrits(new_exp, new_dir);
 }
 
 void DualTrits::swap(DualTrits& other) noexcept {
