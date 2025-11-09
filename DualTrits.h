@@ -20,7 +20,25 @@ public:
     typedef int8_t wide_t;
     typedef int16_t compute_t;
     static constexpr wide_t BASE = 3;
-    
+    /*
+    our dual trits representation:
+    exponent: 0 -> 0 (3^0)
+              1 -> 1 (3^1)
+              2 -> 2 (3^-1)
+    direction: 0 -> 0 (0)
+               1 -> 1 (1)
+               2 -> 2 (-1)
+    number range: -inf, -3,-1,-1/3,0,1/3,1,3,inf
+    DualTrits(0,0) = 0
+    DualTrits(1,0) = inf
+    DualTrits(2,0) = -inf
+    DualTrits(0,1) = 1
+    DualTrits(0,2) = -1
+    DualTrits(1,1) = 3
+    DualTrits(1,2) = -3
+    DualTrits(2,1) = 1/3
+    DualTrits(2,2) = -1/3
+    */
     constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : exponent(e), direction(d) {}
     // Accessors for testing and inspection
     [[nodiscard]] constexpr unsigned int getExponent() const noexcept { return exponent; }
