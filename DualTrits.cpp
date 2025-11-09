@@ -69,11 +69,11 @@ DualTrits::compute_t DualTrits::mul3() const {
     if (isSpecial()) {
         return -1;// not handling special values now 
     }
-    if (exponent == 2){ // 3^-1
+    if (exponent == 2) { // 3^-1
         return reinterpt_digit(direction);
-    }else if (exponent == 0){ // 3^0
+    } else if (exponent == 0) { // 3^0
         return reinterpt_digit(direction) * 3;
-    }else if (exponent == 1){ // 3^1
+    } else if (exponent == 1) { // 3^1
         return reinterpt_digit(direction) * 9;
     }
     return 0;
