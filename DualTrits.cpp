@@ -80,7 +80,7 @@ DualTrits::compute_t DualTrits::mul3() const {
 }
 /*
 our number range is -inf, -3,-1,-1/3,0,1/3,1,3,inf
-if all multipled by 3, we get -inf,-9,-3,-1,0,1,3,9,inf
+if all multiplied by 3, we get -inf,-9,-3,-1,0,1,3,9,inf
 if the sum is smaller than -9, return -inf
 if the sum is greater than 9, return inf
 else, we need to round them back to dual trits
