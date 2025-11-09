@@ -48,6 +48,30 @@ target_link_libraries(packing_tests PRIVATE GTest::gtest GTest::gtest_main ${MPF
 target_include_directories(packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(packing_tests)
 
+add_executable(arithmetic_tests
+        tests/test_arithmetic.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(arithmetic_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(arithmetic_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(arithmetic_tests)
+
+add_executable(multiplication_tests
+        tests/test_multiplication.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(multiplication_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(multiplication_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(multiplication_tests)
+
+add_executable(division_tests
+        tests/test_division.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(division_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(division_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(division_tests)
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================
