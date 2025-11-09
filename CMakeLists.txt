@@ -27,6 +27,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+# Fetch Google Benchmark
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing" FORCE)
+FetchContent_Declare(
+    googlebenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        v1.8.3
+)
+FetchContent_MakeAvailable(googlebenchmark)
+
 include(CTest)
 enable_testing()
 include(GoogleTest)
@@ -38,3 +47,14 @@ add_executable(packing_tests
 target_link_libraries(packing_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
 target_include_directories(packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(packing_tests)
+
+# =========================
+# Benchmarks with Google Benchmark
+# =========================
+add_executable(packing_benchmarks
+        benchmarks/benchmark_packing.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(packing_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(packing_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
