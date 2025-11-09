@@ -56,6 +56,14 @@ target_link_libraries(arithmetic_tests PRIVATE GTest::gtest GTest::gtest_main ${
 target_include_directories(arithmetic_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(arithmetic_tests)
 
+add_executable(multiplication_tests
+        tests/test_multiplication.cpp
+        DualTrits.cpp
+        dual_trits_pack.cpp)
+target_link_libraries(multiplication_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(multiplication_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(multiplication_tests)
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================

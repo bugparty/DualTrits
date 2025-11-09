@@ -69,11 +69,11 @@ DualTrits::compute_t DualTrits::mul3() const {
     if (isSpecial()) {
         return -1;// not handling special values now 
     }
-    if (exponent == 2) { // 3^-1
+    if (exponent == 2){ // 3^-1
         return reinterpt_digit(direction);
-    } else if (exponent == 0) { // 3^0
+    }else if (exponent == 0){ // 3^0
         return reinterpt_digit(direction) * 3;
-    } else if (exponent == 1) { // 3^1
+    }else if (exponent == 1){ // 3^1
         return reinterpt_digit(direction) * 9;
     }
     return 0;
@@ -137,7 +137,7 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
     }else{
         //tie, round half away from zero (choose the one with larger absolute value)
         // because if we do 1+1, if we do tie to even, it still ends up to 1, which doesn't make sense
-        
+
         if (std::abs(kValidMul3Values[l]) > std::abs(kValidMul3Values[l-1])){
             return divide3(kValidMul3Values[l]);
         } else {
@@ -163,10 +163,86 @@ DualTrits DualTrits::operator-(const DualTrits& other) const {
     compute_t diff = x - y;
     return round_mul3(diff);
 }
+
+/*
+ * Multiplication operator for DualTrits
+ * 
+ * Mathematical formula:
+ *   a = direction_a * 3^exponent_a
+ *   b = direction_b * 3^exponent_b
+ *   a * b = (direction_a * direction_b) * 3^(exponent_a + exponent_b)
+ * 
+ * Where exponent encoding: 0 -> 0, 1 -> 1, 2 -> -1
+ *        direction encoding: 0 -> 0, 1 -> 1, 2 -> -1
+ * 
+ * Algorithm:
+ * 1. Handle special cases (0, inf, -inf)
+ * 2. Compute new direction (sign) as product of directions
+ * 3. Compute new exponent as sum of exponents
+ * 4. Handle overflow/underflow of exponent range
+ * 5. Construct result DualTrits
+ */
 DualTrits DualTrits::operator*(const DualTrits& other) const {
-    //exact compute
-    return DualTrits{};
+    // Handle multiplication with zero (only if it's truly zero: exp=0, dir=0)
+    if ((direction == 0 && exponent == 0) || (other.direction == 0 && other.exponent == 0)) {
+        return DualTrits(0, 0); // 0
+    }
+    
+    // Handle special values (inf, -inf)
+    if (isSpecial() || other.isSpecial()) {
+        // inf * positive = inf, inf * negative = -inf
+        // Determine sign of result
+        // For special values: exponent=1 means +inf, exponent=2 means -inf
+        int sign_a = isSpecial() ? (exponent == 1 ? 1 : -1) : reinterpt_digit(direction);
+        int sign_b = other.isSpecial() ? (other.exponent == 1 ? 1 : -1) : reinterpt_digit(other.direction);
+        int result_sign = sign_a * sign_b;
+        
+        // Result is always infinity with appropriate sign
+        if (result_sign > 0) {
+            return DualTrits(1, 0); // +inf
+        } else {
+            return DualTrits(2, 0); // -inf
+        }
+    }
+    
+    // Normal case: both are finite non-zero values
+    // Compute new direction (sign)
+    int dir_a = reinterpt_digit(direction);
+    int dir_b = reinterpt_digit(other.direction);
+    int new_dir_val = dir_a * dir_b; // -1, 0, or 1
+    
+    // Compute new exponent
+    int exp_a = reinterpt_exponent(exponent);
+    int exp_b = reinterpt_exponent(other.exponent);
+    int new_exp_val = exp_a + exp_b;
+    
+    // Handle exponent overflow (> 1 means result >= 3^2 = 9)
+    if (new_exp_val > 1) {
+        // Overflow to infinity
+        // Positive overflow -> +inf (1,0), Negative overflow -> -inf (2,0)
+        if (new_dir_val > 0) {
+            return DualTrits(1, 0); // +inf
+        } else {
+            return DualTrits(2, 0); // -inf
+        }
+    }
+    
+    // Handle exponent underflow (< -1 means result <= 3^-2 = 1/9)
+    if (new_exp_val < -1) {
+        // 1/9 is not representable, round to 0 or 1/3
+        // Since 1/9 ≈ 0.111, it's closer to 0 than to 1/3 ≈ 0.333
+        // But with round-away-from-zero for ties, and 1/9 to 0 distance = 1/9
+        // 1/9 to 1/3 distance = 2/9, so round to 0
+        return DualTrits(0, 0); // 0
+    }
+    
+    // Construct result within valid range
+    wide_t new_exp = encode_exponent(new_exp_val);
+    wide_t new_dir = encode_direction(new_dir_val);
+    
+    return DualTrits(new_exp, new_dir);
 }
+
 DualTrits DualTrits::operator/(const DualTrits& other) const {
     //exact compute
     return DualTrits{};
@@ -182,6 +258,32 @@ void DualTrits::swap(DualTrits& other) noexcept {
     unsigned int temp_direction = this->direction;
     this->direction = other.direction;
     other.direction = temp_direction;
+}
+
+// Helper function: Convert exponent encoding to integer value
+// 0 -> 0, 1 -> 1, 2 -> -1
+int DualTrits::reinterpt_exponent(wide_t exp) noexcept {
+    if (exp == 0) return 0;   // 3^0
+    if (exp == 1) return 1;   // 3^1
+    if (exp == 2) return -1;  // 3^-1
+    return 0;
+}
+
+// Helper function: Convert integer exponent value to encoding
+// 0 -> 0, 1 -> 1, -1 -> 2
+DualTrits::wide_t DualTrits::encode_exponent(int exp_val) noexcept {
+    if (exp_val == 0) return 0;
+    if (exp_val == 1) return 1;
+    if (exp_val == -1) return 2;
+    return 0; // Should not happen
+}
+
+// Helper function: Convert integer direction value to encoding
+// 0 -> 0, 1 -> 1, -1 -> 2
+DualTrits::wide_t DualTrits::encode_direction(int dir_val) noexcept {
+    if (dir_val == 0) return 0;
+    if (dir_val > 0) return 1;  // positive
+    return 2;  // negative
 }
 
 template<typename T>

@@ -64,6 +64,12 @@ public:
     compute_t mul3() const;
     DualTrits divide3(compute_t num) const;
     DualTrits round_mul3(compute_t num) const;
+    
+    // Helper functions for multiplication
+    [[nodiscard]] static int reinterpt_exponent(wide_t exp) noexcept;
+    [[nodiscard]] static wide_t encode_exponent(int exp_val) noexcept;
+    [[nodiscard]] static wide_t encode_direction(int dir_val) noexcept;
+    
     // Swap operation
     void swap(DualTrits& other) noexcept;
 
