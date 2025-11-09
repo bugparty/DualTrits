@@ -26,3 +26,6 @@ jobs:
 
       - name: Run executable
         run: ./build/project_float
+      
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
