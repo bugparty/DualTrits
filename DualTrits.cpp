@@ -149,7 +149,7 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
 }
 DualTrits DualTrits::operator+(const DualTrits& other) const {
     //exact compute
-    compute_t x,y;
+    compute_t x, y;
     x = this->mul3();
     y = other.mul3();
     compute_t sum = x + y;
@@ -157,7 +157,7 @@ DualTrits DualTrits::operator+(const DualTrits& other) const {
 }
 DualTrits DualTrits::operator-(const DualTrits& other) const {
     //exact compute
-    compute_t x,y;
+    compute_t x, y;
     x = this->mul3();
     y = other.mul3();
     compute_t diff = x - y;
