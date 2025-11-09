@@ -135,8 +135,10 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
     }else if (std::abs(kValidMul3Values[l] - num) > std::abs(kValidMul3Values[l-1] - num)){
         return divide3(kValidMul3Values[l-1]);
     }else{
-        //tie, round to even
-        if (kValidMul3Values[l] % 2 == 0){
+        //tie, round half away from zero (choose the one with larger absolute value)
+        // because if we do 1+1, if we do tie to even, it still ends up to 1, which doesn't make sense
+        
+        if (std::abs(kValidMul3Values[l]) > std::abs(kValidMul3Values[l-1])){
             return divide3(kValidMul3Values[l]);
         }else{
             return divide3(kValidMul3Values[l-1]);
