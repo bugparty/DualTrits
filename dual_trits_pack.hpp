@@ -19,7 +19,7 @@ constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
 // Generic packer: pack `Count` DualTrits into unsigned integer type `UInt`
 template <std::size_t Count, class UInt>
 constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
-    static_assert(std::is_unsigned<UInt>::value, "UInt must be an unsigned type");
+    static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned type");
 
     // Required representable range: BASE^(2*Count) - 1
     constexpr unsigned digits = 2 * Count;
