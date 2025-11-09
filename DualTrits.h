@@ -19,9 +19,11 @@ class DualTrits {
 public:
     typedef int8_t wide_t;
     static constexpr wide_t BASE = 3;
-
-    constexpr explicit DualTrits(int e = 0, wide_t d = 0) noexcept : exponent(e), direction(d) {}
-
+    constexpr DualTrits() noexcept : exponent(0), direction(0) {}
+    constexpr explicit DualTrits(int e, wide_t d) noexcept : exponent(e), direction(d) {}
+    // Accessors for testing and inspection
+    [[nodiscard]] constexpr unsigned int getExponent() const noexcept { return exponent; }
+    [[nodiscard]] constexpr unsigned int getDirection() const noexcept { return direction; }
     std::string toString() const;
     std::string toFancyString() const;
 
@@ -42,6 +44,11 @@ public:
     unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
     unsigned int asRawPackedBits() const noexcept;
+
+    template <std::size_t Count, class UInt>
+    friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
+    template <std::size_t Count, class UInt>
+    friend constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept;
 
 private:
     template<typename T>
