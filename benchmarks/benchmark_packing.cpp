@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
-#include "../DualTrits.h"
-#include "../dual_trits_pack.hpp"
+#include "DualTrits.h"
+#include "dual_trits_pack.hpp"
 
 // Benchmark: Pack 5 DualTrits into uint16_t
 static void BM_Pack5(benchmark::State& state) {
