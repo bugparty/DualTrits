@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/DualTrits/DualTrits/_codeql_build_dir/arithmetic_tests[1]_tests.cmake")
-  include("/home/runner/work/DualTrits/DualTrits/_codeql_build_dir/arithmetic_tests[1]_tests.cmake")
-else()
-  add_test(arithmetic_tests_NOT_BUILT arithmetic_tests_NOT_BUILT)
-endif()

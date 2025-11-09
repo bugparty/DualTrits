@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/DualTrits/DualTrits/_codeql_build_dir/packing_tests[1]_tests.cmake")
-  include("/home/runner/work/DualTrits/DualTrits/_codeql_build_dir/packing_tests[1]_tests.cmake")
-else()
-  add_test(packing_tests_NOT_BUILT packing_tests_NOT_BUILT)
-endif()
