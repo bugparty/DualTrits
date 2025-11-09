@@ -114,25 +114,25 @@ DualTrits DualTrits::divide3(DualTrits::compute_t num) const {
     }
 }
 DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
-    int l=0, r=kValidMul3ValuesSize;
-    while (l < r){
+    int l = 0, r = kValidMul3ValuesSize;
+    while (l < r) {
         int mid = l + (r - l) / 2;
-        if (kValidMul3Values[mid] < num){
+        if (kValidMul3Values[mid] < num) {
             l = mid + 1;
-        }else{
+        } else {
             r = mid;
         }
     }
     //now l is the smallest index s.t. kValidMul3Values[l] >= num
-    if (l == 0){
+    if (l == 0) {
         return DualTrits(2,0); // -inf
     }
-    if (l == kValidMul3ValuesSize){
+    if (l == kValidMul3ValuesSize) {
         return DualTrits(1,0); // inf
     }
     if (std::abs(kValidMul3Values[l] - num) < std::abs(kValidMul3Values[l-1] - num)){
         return divide3(kValidMul3Values[l]);
-    }else if (std::abs(kValidMul3Values[l] - num) > std::abs(kValidMul3Values[l-1] - num)){
+    } else if (std::abs(kValidMul3Values[l] - num) > std::abs(kValidMul3Values[l-1] - num)){
         return divide3(kValidMul3Values[l-1]);
     }else{
         //tie, round half away from zero (choose the one with larger absolute value)
