@@ -18,7 +18,7 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     for (std::size_t i = 0; i < Count; ++i) {
         const auto& t = dual_trits[i];
         
-        packed += static_cast<UInt>(t.direction) * multiplier;
+        packed += static_cast<UInt>(t.getDirection()) * multiplier;
         multiplier *= DualTrits::BASE;
         
         packed += static_cast<UInt>(t.exponent) * multiplier;
