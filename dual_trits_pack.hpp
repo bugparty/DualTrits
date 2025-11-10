@@ -31,6 +31,7 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     UInt multiplier = 1;
 
     // Encoding order: direction first, then exponent
+ 
     for (std::size_t i = 0; i < Count; ++i) {
         const auto& t = dual_trits[i];
 
@@ -80,9 +81,8 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
         packed /= DualTrits::BASE;
         auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
-
-        out[i].setDirection(dir);
-        out[i].setExponent(exp);
+        // don't try other fancy things, compiler will optimize well enough
+        out[i] = DualTrits(exp, dir);
     }
 }
 
