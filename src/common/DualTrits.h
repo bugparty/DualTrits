@@ -68,6 +68,20 @@ public:
     bool isSpecial() const noexcept {
         return (getDirection() == 0 && getExponent() != 0);
     }
+    
+    // Infinity checking functions
+    bool isInfinity() const noexcept {
+        return (getDirection() == 0 && getExponent() != 0);
+    }
+    
+    bool isPositiveInfinity() const noexcept {
+        return (getDirection() == 0 && getExponent() == 1);
+    }
+    
+    bool isNegativeInfinity() const noexcept {
+        return (getDirection() == 0 && getExponent() == 2);
+    }
+    
     compute_t mul3() const;
     DualTrits divide3(compute_t num) const;
     DualTrits round_mul3(compute_t num) const;

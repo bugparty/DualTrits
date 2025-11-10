@@ -262,21 +262,18 @@ TEST(DualTritsAddition, ZeroPlusInf) {
     DualTrits a(0, 0);  // 0
     DualTrits b(1, 0);  // inf
     DualTrits result = a + b;
-    // Current implementation: inf.mul3() returns -1, so 0 + (-1) = -1
-    // This is a known limitation - ideally should return inf
-    // Just verify it doesn't crash and produces a valid result
-    EXPECT_LE(result.getExponent(), 2u);
-    EXPECT_LE(result.getDirection(), 2u);
+    // expected: inf
+    EXPECT_TRUE(result.isSpecial());
+    EXPECT_TRUE(result.isInfinity());
 }
 
 TEST(DualTritsAddition, ZeroPlusMinusInf) {
     DualTrits a(0, 0);  // 0
     DualTrits b(2, 0);  // -inf
     DualTrits result = a + b;
-    // Current implementation has limited special value support
-    // Just verify it doesn't crash and produces a valid result
-    EXPECT_LE(result.getExponent(), 2u);
-    EXPECT_LE(result.getDirection(), 2u);
+    // expected: -inf
+    EXPECT_TRUE(result.isSpecial());
+    EXPECT_TRUE(result.isNegativeInfinity());
 }
 
 // =============================

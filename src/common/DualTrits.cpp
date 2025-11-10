@@ -69,7 +69,11 @@ std::string DualTrits::toMPrealString() const {
 DualTrits::compute_t DualTrits::mul3() const {
     //exact compute
     if (isSpecial()) {
-        return -1;// not handling special values now 
+        if (isPositiveInfinity()){
+            return  9;  
+        } else {
+            return -9;  
+        }
     }
     auto exp = getExponent();
     auto dir = getDirection();
@@ -118,6 +122,14 @@ DualTrits DualTrits::divide3(DualTrits::compute_t num) const {
     }
 }
 DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
+    // Handle infinity cases first
+    if (num <= -9) {
+        return DualTrits(2,0); // -inf
+    }
+    if (num >= 9) {
+        return DualTrits(1,0); // inf  
+    }
+    
     int l = 0, r = kValidMul3ValuesSize;
     while (l < r) {
         int mid = l + (r - l) / 2;
