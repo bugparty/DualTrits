@@ -140,7 +140,7 @@ static void BM_Pack20_Batch(benchmark::State& state) {
         uint64_t sink = 0;
         for (int i = 0; i < N; ++i) {
             auto packed = pack20(inputs[i].data());
-            benchmark::DoNotOptimize(sink += packed);
+            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed));
         }
         benchmark::ClobberMemory();
     }
