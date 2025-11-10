@@ -33,11 +33,13 @@ double DualTrits::toDouble() const noexcept {
 }
 
 mpfr::mpreal DualTrits::toMPreal() const noexcept {
-    if (this->direction == 0) {
-        if (this->exponent == 0) {
+    auto dir = getDirection();
+    auto exp = getExponent();
+    if (dir == 0) {
+        if (exp == 0) {
             return mpfr::mpreal{0};
         }
-        if (this->exponent == 1) {
+        if (exp == 1) {
             mpfr::mpreal inf;
             inf.setInf();
             return inf;
@@ -47,8 +49,8 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
         return mpfr::mpreal{neginf};
     }
     mpfr::mpreal base{BASE};
-    mpfr::mpreal direction{reinterpt_digit(this->direction)};
-    mpfr::mpreal exponent{reinterpt_digit(this->exponent)};
+    mpfr::mpreal direction{reinterpt_digit(dir)};
+    mpfr::mpreal exponent{reinterpt_digit(exp)};
     return direction * mpfr::pow(base,exponent);
 }
 
@@ -69,12 +71,14 @@ DualTrits::compute_t DualTrits::mul3() const {
     if (isSpecial()) {
         return -1;// not handling special values now 
     }
-    if (exponent == 2){ // 3^-1
-        return reinterpt_digit(direction);
-    }else if (exponent == 0){ // 3^0
-        return reinterpt_digit(direction) * 3;
-    }else if (exponent == 1){ // 3^1
-        return reinterpt_digit(direction) * 9;
+    auto exp = getExponent();
+    auto dir = getDirection();
+    if (exp == 2){ // 3^-1
+        return reinterpt_digit(dir);
+    }else if (exp == 0){ // 3^0
+        return reinterpt_digit(dir) * 3;
+    }else if (exp == 1){ // 3^1
+        return reinterpt_digit(dir) * 9;
     }
     return 0;
 }
@@ -183,8 +187,13 @@ DualTrits DualTrits::operator-(const DualTrits& other) const {
  * 5. Construct result DualTrits
  */
 DualTrits DualTrits::operator*(const DualTrits& other) const {
+    auto dir = getDirection();
+    auto exp = getExponent();
+    auto other_dir = other.getDirection();
+    auto other_exp = other.getExponent();
+    
     // Handle multiplication with zero (only if it's truly zero: exp=0, dir=0)
-    if ((direction == 0 && exponent == 0) || (other.direction == 0 && other.exponent == 0)) {
+    if ((dir == 0 && exp == 0) || (other_dir == 0 && other_exp == 0)) {
         return DualTrits(0, 0); // 0
     }
     
@@ -193,8 +202,8 @@ DualTrits DualTrits::operator*(const DualTrits& other) const {
         // inf * positive = inf, inf * negative = -inf
         // Determine sign of result
         // For special values: exponent=1 means +inf, exponent=2 means -inf
-        int sign_a = isSpecial() ? (exponent == 1 ? 1 : -1) : reinterpt_digit(direction);
-        int sign_b = other.isSpecial() ? (other.exponent == 1 ? 1 : -1) : reinterpt_digit(other.direction);
+        int sign_a = isSpecial() ? (exp == 1 ? 1 : -1) : reinterpt_digit(dir);
+        int sign_b = other.isSpecial() ? (other_exp == 1 ? 1 : -1) : reinterpt_digit(other_dir);
         int result_sign = sign_a * sign_b;
         
         // Result is always infinity with appropriate sign
@@ -207,13 +216,13 @@ DualTrits DualTrits::operator*(const DualTrits& other) const {
     
     // Normal case: both are finite non-zero values
     // Compute new direction (sign)
-    int dir_a = reinterpt_digit(direction);
-    int dir_b = reinterpt_digit(other.direction);
+    int dir_a = reinterpt_digit(dir);
+    int dir_b = reinterpt_digit(other_dir);
     int new_dir_val = dir_a * dir_b; // -1, 0, or 1
     
     // Compute new exponent
-    int exp_a = reinterpt_exponent(exponent);
-    int exp_b = reinterpt_exponent(other.exponent);
+    int exp_a = reinterpt_exponent(exp);
+    int exp_b = reinterpt_exponent(other_exp);
     int new_exp_val = exp_a + exp_b;
     
     // Handle exponent overflow (> 1 means result >= 3^2 = 9)
@@ -258,13 +267,18 @@ DualTrits DualTrits::operator*(const DualTrits& other) const {
  * - finite / inf: returns 0
  */
 DualTrits DualTrits::operator/(const DualTrits& other) const {
+    auto dir = getDirection();
+    auto exp = getExponent();
+    auto other_dir = other.getDirection();
+    auto other_exp = other.getExponent();
+    
     // Handle division by zero (including 0/0)
-    if (other.direction == 0 && other.exponent == 0) {
+    if (other_dir == 0 && other_exp == 0) {
         throw std::domain_error("Division by zero");
     }
     
     // Handle 0 / x (where x != 0)
-    if (direction == 0 && exponent == 0) {
+    if (dir == 0 && exp == 0) {
         return DualTrits(0, 0); // 0
     }
     
@@ -273,8 +287,8 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
         // inf / inf = 1 (by convention)
         if (isSpecial() && other.isSpecial()) {
             // Determine the sign of the result
-            int sign_a = (exponent == 1) ? 1 : -1;  // exponent=1 -> +inf, exponent=2 -> -inf
-            int sign_b = (other.exponent == 1) ? 1 : -1;
+            int sign_a = (exp == 1) ? 1 : -1;  // exponent=1 -> +inf, exponent=2 -> -inf
+            int sign_b = (other_exp == 1) ? 1 : -1;
             int result_sign = sign_a * sign_b;
             
             // Return 1 or -1 based on sign
@@ -287,8 +301,8 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
         }
         
         // inf / finite = inf (with appropriate sign)
-        int sign_a = (exponent == 1) ? 1 : -1;
-        int sign_b = reinterpt_digit(other.direction);
+        int sign_a = (exp == 1) ? 1 : -1;
+        int sign_b = reinterpt_digit(other_dir);
         int result_sign = sign_a * sign_b;
         
         if (result_sign > 0) {
@@ -300,13 +314,13 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
     
     // Normal case: both are finite non-zero values
     // Compute new direction (sign)
-    int dir_a = reinterpt_digit(direction);
-    int dir_b = reinterpt_digit(other.direction);
+    int dir_a = reinterpt_digit(dir);
+    int dir_b = reinterpt_digit(other_dir);
     int new_dir_val = dir_a * dir_b; // Sign of a/b = sign(a) * sign(b)
     
     // Compute new exponent (subtraction for division)
-    int exp_a = reinterpt_exponent(exponent);
-    int exp_b = reinterpt_exponent(other.exponent);
+    int exp_a = reinterpt_exponent(exp);
+    int exp_b = reinterpt_exponent(other_exp);
     int new_exp_val = exp_a - exp_b;
     
     // Handle exponent overflow (> 1 means result >= 3^2 = 9)
@@ -333,15 +347,10 @@ DualTrits DualTrits::operator/(const DualTrits& other) const {
 }
 
 void DualTrits::swap(DualTrits& other) noexcept {
-    // Swap exponent
-    unsigned int temp_exponent = this->exponent;
-    this->exponent = other.exponent;
-    other.exponent = temp_exponent;
-    
-    // Swap direction
-    unsigned int temp_direction = this->direction;
-    this->direction = other.direction;
-    other.direction = temp_direction;
+    // Swap storage directly
+    wide_t temp = this->storage;
+    this->storage = other.storage;
+    other.storage = temp;
 }
 
 // Helper function: Convert exponent encoding to integer value
@@ -372,12 +381,14 @@ DualTrits::wide_t DualTrits::encode_direction(int dir_val) noexcept {
 
 template<typename T>
 [[nodiscard]] constexpr T DualTrits::to() const noexcept {
-    if (this->direction == 0) {
-        if (this->exponent == 0) {
+    auto dir = getDirection();
+    auto exp = getExponent();
+    if (dir == 0) {
+        if (exp == 0) {
             return T(0);
         }
 
-        if (this->exponent == 1) {
+        if (exp == 1) {
             if (std::numeric_limits<T>::has_infinity) {
                 return std::numeric_limits<T>::infinity();
             }
@@ -388,22 +399,24 @@ template<typename T>
         }
         return std::numeric_limits<T>::lowest();
     }
-    wide_t reinterpt_direction = reinterpt_digit(direction);
+    wide_t reinterpt_direction = reinterpt_digit(dir);
     T convertedDirection = static_cast<T>(reinterpt_direction);
-    T convertedExponent = pow_base<T, BASE>(exponent);
+    T convertedExponent = pow_base<T, BASE>(exp);
     return convertedDirection * convertedExponent;
 }
 
 template<typename T>
 [[nodiscard]] std::string DualTrits::toAsString() const {
     std::ostringstream oss;
+    auto dir = getDirection();
+    auto exp = getExponent();
 
-    if (this->direction == 0) {
-        if (this->exponent == 0) {
+    if (dir == 0) {
+        if (exp == 0) {
             oss << T(0);
             return oss.str();
         }
-        if (this->exponent == 1) {
+        if (exp == 1) {
             if (std::numeric_limits<T>::has_infinity) {
                 oss << std::numeric_limits<T>::infinity();
             } else {
@@ -419,10 +432,10 @@ template<typename T>
         }
         return oss.str();
     }
-    wide_t reinterpt_direction = reinterpt_digit(direction);
-    wide_t reinterpt_exponent = reinterpt_digit(exponent);
+    wide_t reinterpt_direction = reinterpt_digit(dir);
+    wide_t reinterpt_exponent = reinterpt_digit(exp);
     T convertedDirection = static_cast<T>(reinterpt_direction);
-    T convertedExponent = pow_base<T, BASE>(exponent);
+    T convertedExponent = pow_base<T, BASE>(exp);
 
     T result = convertedDirection * convertedExponent;
     oss << "(" << (int) BASE << " ** " << (int) reinterpt_exponent << ") * " << convertedDirection << " = " << result;
@@ -444,17 +457,25 @@ template<typename T, wide_t BASE>
 }
 
 std::bitset<4> DualTrits::asBits() const noexcept {
-    return std::bitset<4>(4 * this->exponent + this->direction);
+    auto exp = getExponent();
+    auto dir = getDirection();
+    return std::bitset<4>(4 * exp + dir);
 }
 
 unsigned int DualTrits::asRawBits() const noexcept {
-    return 4 * this->exponent + this->direction;
+    auto exp = getExponent();
+    auto dir = getDirection();
+    return 4 * exp + dir;
 }
 
 std::bitset<4> DualTrits::asPackedBits() const noexcept {
-    return std::bitset<4>(3 * this->exponent + this->direction);
+    auto exp = getExponent();
+    auto dir = getDirection();
+    return std::bitset<4>(3 * exp + dir);
 }
 
 unsigned int DualTrits::asRawPackedBits() const noexcept {
-    return 3 * this->exponent + this->direction;
+    auto exp = getExponent();
+    auto dir = getDirection();
+    return 3 * exp + dir;
 }

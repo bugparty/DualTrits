@@ -40,10 +40,16 @@ public:
     DualTrits(2,1) = 1/3
     DualTrits(2,2) = -1/3
     */
-    constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : exponent(e), direction(d) {}
+    constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
     // Accessors for testing and inspection
-    [[nodiscard]] constexpr unsigned int getExponent() const noexcept { return exponent; }
-    [[nodiscard]] constexpr unsigned int getDirection() const noexcept { return direction; }
+    [[nodiscard]] constexpr int8_t getExponent() const noexcept { return (storage >> 2) & 0b11; }
+    constexpr void setExponent(int8_t e) noexcept {
+        storage = ( storage & 0b11 ) | ( (e & 0b11) << 2 );
+    }
+    [[nodiscard]] constexpr int8_t getDirection() const noexcept { return storage & 0b11; }
+    constexpr void setDirection(int8_t d) noexcept {
+        storage = ( storage & 0b1100 ) | ( d & 0b11 );
+    }
     std::string toString() const;
     std::string toFancyString() const;
 
@@ -60,7 +66,7 @@ public:
     DualTrits operator*(const DualTrits& other) const;
     DualTrits operator/(const DualTrits& other) const;
     bool isSpecial() const noexcept {
-        return (direction == 0 && exponent != 0);
+        return (getDirection() == 0 && getExponent() != 0);
     }
     compute_t mul3() const;
     DualTrits divide3(compute_t num) const;
@@ -79,10 +85,10 @@ public:
     std::bitset<4> asPackedBits() const noexcept;
     unsigned int asRawPackedBits() const noexcept;
 
-    template <std::size_t Count, class UInt>
-    friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
-    template <std::size_t Count, class UInt>
-    friend constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept;
+    // template <std::size_t Count, class UInt>
+    // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
+    // template <std::size_t Count, class UInt>
+    // friend constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept;
 
     // Non-member swap function
     friend void swap(DualTrits& a, DualTrits& b) noexcept {
@@ -119,9 +125,22 @@ private:
     }
     template<typename T, wide_t BASE>
     [[nodiscard]] T constexpr pow_base(wide_t exp) const noexcept;
-
-    unsigned int exponent : 2;
-    unsigned int direction : 2;
+    /* use a compact representation:
+    * a int8_t can have 4 bits.
+    * we use 2 bits for exponent and 2 bits for direction.
+    * a simple lookup table will do the trick.
+    * for direction： 
+    * 00 -> 0
+    * 01 -> 1
+    * 10 -> -1
+    * for exponent:
+    * 0b0000 -> 0 (3^0)
+    * 0b0100 -> 1 (3^1)
+    * 0b1000 -> 2 (3^-1
+    */
+    wide_t storage{}; // 4 bits used
+    // int8_t exponent : 2;
+    // int8_t direction : 2;
 };
 
 #endif //PROJECT_FLOAT_DUALTRITS_H

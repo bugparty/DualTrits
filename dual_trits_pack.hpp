@@ -34,10 +34,10 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     for (std::size_t i = 0; i < Count; ++i) {
         const auto& t = dual_trits[i];
 
-        packed += static_cast<UInt>(t.direction) * multiplier;
+        packed += static_cast<UInt>(t.getDirection()) * multiplier;
         multiplier *= DualTrits::BASE;
 
-        packed += static_cast<UInt>(t.exponent) * multiplier;
+        packed += static_cast<UInt>(t.getExponent()) * multiplier;
         multiplier *= DualTrits::BASE;
     }
     return packed;
@@ -81,8 +81,8 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
         auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
 
-        out[i].direction = dir;
-        out[i].exponent  = exp;
+        out[i].setDirection(dir);
+        out[i].setExponent(exp);
     }
 }
 
