@@ -26,7 +26,13 @@ void pack_dual_trits_batch_cuda(DualTrits const* h_input, UInt* h_output, int n)
     cudaMalloc(&d_output, n * sizeof(UInt));
     
     // Copy input to device
-    cudaMemcpy(d_input, h_input, n * Count * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaError_t err = cudaMemcpy(d_input, h_input, n * Count * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy (HostToDevice) failed: %s\n", cudaGetErrorString(err));
+        cudaFree(d_input);
+        cudaFree(d_output);
+        return;
+    }
     
     // Launch kernel
     int blockSize = 256;
