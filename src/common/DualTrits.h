@@ -1,4 +1,9 @@
-#pragma once
+//
+// Created by bowman on 2025/10/22.
+//
+
+#ifndef PROJECT_FLOAT_DUALTRITS_H
+#define PROJECT_FLOAT_DUALTRITS_H
 
 #include <cmath>
 #include <cstdint>
@@ -134,6 +139,6 @@ private:
     * 0b1000 -> 2 (3^-1
     */
     wide_t storage{}; // 4 bits used
-    // int8_t exponent : 2;
-    // int8_t direction : 2;
 };
+    
+#endif //PROJECT_FLOAT_DUALTRITS_H
