@@ -1,9 +1,4 @@
-//
-// Created by bowman on 2025/10/22.
-//
-
-#ifndef PROJECT_FLOAT_DUALTRITS_H
-#define PROJECT_FLOAT_DUALTRITS_H
+#pragma once
 
 #include <cmath>
 #include <cstdint>
@@ -142,5 +137,3 @@ private:
     // int8_t exponent : 2;
     // int8_t direction : 2;
 };
-
-#endif //PROJECT_FLOAT_DUALTRITS_H

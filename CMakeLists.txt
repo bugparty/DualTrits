@@ -98,6 +98,14 @@ target_link_libraries(division_tests PRIVATE GTest::gtest GTest::gtest_main ${MP
 target_include_directories(division_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(division_tests)
 
+add_executable(precision_tests
+        tests/test_precision.cpp
+        src/common/DualTrits.cpp
+        src/cpu/dual_trits_pack.cpp)
+target_link_libraries(precision_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+target_include_directories(precision_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+gtest_discover_tests(precision_tests)
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================
