@@ -36,8 +36,8 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
         auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
         
-        out[i].direction = dir;
-        out[i].exponent  = exp;
+        out[i].setDirection(dir);
+        out[i].setExponent(exp);
     }
 }
 
