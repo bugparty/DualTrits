@@ -29,12 +29,33 @@ jobs:
         run: |
           ./build/packing_benchmarks --benchmark_format=json | tee benchmark_results.json
 
-      - name: Display benchmark results
+      - name: Compare and Update Benchmarks
+        env:
+          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GITHUB_TOKEN }}
+          PREV_BENCHMARK_JSON: ${{ vars.PREV_BENCHMARK_JSON }}
+          BEST_BENCHMARK_JSON: ${{ vars.BEST_BENCHMARK_JSON }}
+          BEST_BENCHMARK_SHA: ${{ vars.BEST_BENCHMARK_SHA }}
         run: |
-          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          ./build/packing_benchmarks >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          # Ensure the script is executable (if needed) or just run with python
+          python3 .github/scripts/compare_benchmarks.py
+          
+          # Check if we need to update variables
+          # Note: GITHUB_TOKEN usually cannot update variables. 
+          # You need a PAT with 'repo' or 'variables' scope stored as BENCHMARK_TOKEN.
+          
+          if [ -f next_prev_benchmark.json ]; then
+            echo "Updating PREV_BENCHMARK_JSON..."
+            gh variable set PREV_BENCHMARK_JSON < next_prev_benchmark.json
+          fi
+          
+          if [ -f next_best_benchmark.json ]; then
+            echo "Updating BEST_BENCHMARK_JSON..."
+            gh variable set BEST_BENCHMARK_JSON < next_best_benchmark.json
+            
+            if [ -f next_best_sha.txt ]; then
+               gh variable set BEST_BENCHMARK_SHA < next_best_sha.txt
+            fi
+          fi
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
