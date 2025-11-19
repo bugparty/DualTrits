@@ -24,6 +24,7 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src/common)
 include_directories(${CMAKE_SOURCE_DIR}/src/cpu)
+include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
 
 if(ENABLE_CUDA)
     include_directories(${CMAKE_SOURCE_DIR}/src/cuda)
