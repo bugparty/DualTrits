@@ -12,6 +12,8 @@ jobs:
   benchmark:
     name: Benchmark ${{ matrix.target_name }}
     runs-on: ${{ matrix.os }}
+    env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -55,8 +57,7 @@ jobs:
           ./build/packing_benchmarks --benchmark_format=json | tee benchmark_results.json
 
       - name: Compare and Update Benchmarks
-        env:
-          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GH_TOKEN }}
+       
         run: |
           # Determine variable names based on matrix target
           SUFFIX=$(echo "${{ matrix.target_name }}" | tr '[:lower:]' '[:upper:]')
