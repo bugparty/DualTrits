@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "src/common/DualTrits.h"
+#include "common/DualTrits.hpp"
 #include <cmath>
 #include <limits>
 

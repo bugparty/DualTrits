@@ -5,7 +5,7 @@
 #ifndef PROJECT_FLOAT_PACKING_H
 #define PROJECT_FLOAT_PACKING_H
 #include <cstdint>
-#include "DualTrits.h"
+#include "common/DualTrits.hpp"
 #include <limits>
 #include <type_traits>
 
@@ -32,7 +32,7 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
 
     // Encoding order: direction first, then exponent
     for (std::size_t i = 0; i < Count; ++i) {
-        const auto& t = dual_trits[i];
+        const DualTrits& t = dual_trits[i];
 
         packed += static_cast<UInt>(t.getDirection()) * multiplier;
         multiplier *= DualTrits::BASE;
