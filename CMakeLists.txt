@@ -22,10 +22,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
-# include_directories(${CMAKE_SOURCE_DIR}/src/common)
-# include_directories(${CMAKE_SOURCE_DIR}/src/cpu)
-include_directories(${CMAKE_SOURCE_DIR}/include/common)
-include_directories(${CMAKE_SOURCE_DIR}/include/cpu)
+include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
+
 
 if(ENABLE_CUDA)
     include_directories(${CMAKE_SOURCE_DIR}/include/cuda)
@@ -77,7 +75,7 @@ target_include_directories(packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(packing_tests)
 
 add_executable(arithmetic_tests
-        tests/test_arithmetic.cpp
+        tests/test_addition_subtraction.cpp
         src/common/DualTrits.cpp
         src/cpu/dual_trits_pack.cpp)
 target_link_libraries(arithmetic_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
@@ -117,4 +115,18 @@ add_executable(packing_benchmarks
         src/cpu/dual_trits_pack.cpp)
 target_link_libraries(packing_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
 target_include_directories(packing_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# CUDA Benchmarks
+if(ENABLE_CUDA)
+    add_executable(packing_cuda_benchmarks
+            benchmarks/benchmark_packing_cuda.cu
+            src/common/DualTrits.cpp
+            src/cuda/dual_trits_pack.cu)
+    target_link_libraries(packing_cuda_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+    target_include_directories(packing_cuda_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    set_target_properties(packing_cuda_benchmarks PROPERTIES
+            CUDA_SEPARABLE_COMPILATION ON
+            CUDA_ARCHITECTURES "75;80;86;89")
+    target_compile_options(packing_cuda_benchmarks PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-expt-relaxed-constexpr>)
+endif()
 

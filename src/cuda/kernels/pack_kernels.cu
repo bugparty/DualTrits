@@ -21,7 +21,7 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
         packed += static_cast<UInt>(t.getDirection()) * multiplier;
         multiplier *= DualTrits::BASE;
         
-        packed += static_cast<UInt>(t.exponent) * multiplier;
+        packed += static_cast<UInt>(t.getExponent()) * multiplier;
         multiplier *= DualTrits::BASE;
     }
     return packed;
