@@ -4,8 +4,16 @@
 
 #include "common/DualTrits.hpp"
 #include <limits>
+#include <cmath>
+#include <sstream>
+#include <bitset>
+#include <stdexcept>
 
 typedef int8_t wide_t;
+
+// Define the infinity constants
+const DualTrits DualTrits::POSITIVE_INFINITY(1, 0);  // +inf: exponent=1, direction=0
+const DualTrits DualTrits::NEGATIVE_INFINITY(2, 0);  // -inf: exponent=2, direction=0
 
 std::string DualTrits::toString() const {
     std::bitset<4> bits = this->asBits();
@@ -97,10 +105,11 @@ DualTrits::compute_t DualTrits::mul3() const {
 namespace {
     // Sorted array of valid values after multiplying by 3 for rounding purposes
     constexpr int kValidMul3Values[] = {-9, -3, -1, 0, 1, 3, 9};
+    constexpr float kValidFloatValues[]  = {-3, -1, -1.0f/3.0f, 0, 1.0f/3.0f, 1, 3};
     constexpr int kValidMul3ValuesSize = 7;
 }
 
-DualTrits DualTrits::divide3(DualTrits::compute_t num) const {
+DualTrits DualTrits::divide3(DualTrits::compute_t num) {
     //exact compute
     switch (num){
         case -9:
@@ -121,6 +130,58 @@ DualTrits DualTrits::divide3(DualTrits::compute_t num) const {
             return DualTrits(0,0); // should not reach here
     }
 }
+
+DualTrits DualTrits::construct_from_index(int index) {
+    switch (index){
+        case 0:
+            return DualTrits(1,2); // -3
+        case 1:
+            return DualTrits(0,2); // -1
+        case 2:
+            return DualTrits(2,2); // -1/3
+        case 3:
+            return DualTrits(0,0); // 0
+        case 4:
+            return DualTrits(2,1); // 1/3
+        case 5:
+            return DualTrits(0,1); // 1
+        case 6:
+            return DualTrits(1,1); // 3
+        default:
+            return DualTrits(0,0); // should not reach here
+    }
+}
+
+DualTrits DualTrits::rounding_float(float num) {
+    if (std::abs(num) <= 1/6.0f) {
+        return DualTrits(0,0); // 0
+    }
+    int l = 0, r = kValidMul3ValuesSize;
+    while (l < r) {
+        int mid = l + (r - l) / 2;
+        if (kValidFloatValues[mid] < num) {
+            l = mid + 1;
+        } else {
+            r = mid;
+        }
+    }
+    //now l is the smallest index s.t. kValidFloatValues[l] >= num
+    if (l == 0) {
+        // smaller than smallest value
+        return DualTrits::NEGATIVE_INFINITY; // -inf
+    } else if (l == kValidMul3ValuesSize) {
+        // larger than largest value
+        return DualTrits::POSITIVE_INFINITY; // inf
+    }else {
+        auto error_l = std::abs((kValidFloatValues[l-1] - num) / kValidFloatValues[l-1]);
+        auto error_r = std::abs((kValidFloatValues[l] - num) / kValidFloatValues[l]);
+        if (error_l < error_r) {
+            return DualTrits::construct_from_index(l-1);
+        } else {
+            return DualTrits::construct_from_index(l);
+        }
+    }
+}
 DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
     // Handle infinity cases first
     if (num <= -9) {
@@ -129,7 +190,7 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
     if (num >= 9) {
         return DualTrits(1,0); // inf  
     }
-    
+ 
     int l = 0, r = kValidMul3ValuesSize;
     while (l < r) {
         int mid = l + (r - l) / 2;
@@ -147,17 +208,17 @@ DualTrits DualTrits::round_mul3(DualTrits::compute_t num) const {
         return DualTrits(1,0); // inf
     }
     if (std::abs(kValidMul3Values[l] - num) < std::abs(kValidMul3Values[l-1] - num)){
-        return divide3(kValidMul3Values[l]);
+        return DualTrits::divide3(kValidMul3Values[l]);
     } else if (std::abs(kValidMul3Values[l] - num) > std::abs(kValidMul3Values[l-1] - num)){
-        return divide3(kValidMul3Values[l-1]);
+        return DualTrits::divide3(kValidMul3Values[l-1]);
     }else{
         //tie, round half away from zero (choose the one with larger absolute value)
         // because if we do 1+1, if we do tie to even, it still ends up to 1, which doesn't make sense
 
         if (std::abs(kValidMul3Values[l]) > std::abs(kValidMul3Values[l-1])){
-            return divide3(kValidMul3Values[l]);
+            return DualTrits::divide3(kValidMul3Values[l]);
         } else {
-            return divide3(kValidMul3Values[l-1]);
+            return DualTrits::divide3(kValidMul3Values[l-1]);
         }
     }
 
