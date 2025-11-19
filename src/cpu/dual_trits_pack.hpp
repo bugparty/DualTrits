@@ -9,8 +9,6 @@
 #include <limits>
 #include <type_traits>
 
-#include <format>
-
 // Simple constexpr integer power
 constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
     unsigned long long r = 1;
@@ -27,7 +25,7 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     constexpr unsigned digits = 2 * Count;
     constexpr unsigned long long max_needed = ipow_u(DualTrits::BASE, digits) - 1ULL;
     static_assert(max_needed <= std::numeric_limits<UInt>::max(),
-                  std::format("UInt does not have enough bits for {} dual-trits", Count));
+                  "UInt does not have enough bits for Count dual-trits");
 
     UInt packed = 0;
     UInt multiplier = 1;
@@ -75,7 +73,7 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
         }
         return true;
     }();
-    static_assert(fits, std::format("UInt is not wide enough for {} dual-trits (2*{} = {} base-3 digits).", Count, Count, 2 * Count));
+    static_assert(fits, "UInt is not wide enough for Count dual-trits (2*Count base-3 digits).");
 
     for (std::size_t i = 0; i < Count; ++i) {
         auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
