@@ -39,6 +39,10 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install mpfr gmp cmake
+          # Install mpreal.h manually (MPFR C++ wrapper is not in Homebrew)
+          curl -L -o mpreal.h https://raw.githubusercontent.com/advanpix/mpreal/master/mpreal.h
+          sudo mkdir -p /usr/local/include
+          sudo mv mpreal.h /usr/local/include/
 
       - name: Configure CMake (Release)
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -52,7 +56,7 @@ jobs:
 
       - name: Compare and Update Benchmarks
         env:
-          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GH_TOKEN }}
         run: |
           # Determine variable names based on matrix target
           SUFFIX=$(echo "${{ matrix.target_name }}" | tr '[:lower:]' '[:upper:]')
