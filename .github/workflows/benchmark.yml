@@ -12,6 +12,7 @@ jobs:
   benchmark:
     name: Benchmark ${{ matrix.target_name }}
     runs-on: ${{ matrix.os }}
+    environment: dualtrit
     env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
     strategy:
