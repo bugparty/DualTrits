@@ -2,9 +2,9 @@
 #include <cuda_runtime.h>
 #include <random>
 #include <vector>
-#include "DualTrits.h"
-#include "src/cuda/dual_trits_pack.cuh"
-#include "src/cuda/kernels/pack_kernels.cu"
+#include "common/DualTrits.hpp"
+#include "dual_trits_pack.cuh"
+#include "cuda/kernels/pack_kernels.cuh"
 
 // Random number generator for creating test data
 static std::random_device rd;

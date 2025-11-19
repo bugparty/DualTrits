@@ -24,13 +24,9 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
 
-
 if(ENABLE_CUDA)
     include_directories(${CMAKE_SOURCE_DIR}/include/cuda)
-endif()
-
-# Configure a header file to pass CUDA availability to source code
-if(ENABLE_CUDA)
+    # Configure a header file to pass CUDA availability to source code
     add_compile_definitions(HAVE_CUDA)
 endif()
 
@@ -123,7 +119,7 @@ if(ENABLE_CUDA)
             src/common/DualTrits.cpp
             src/cuda/dual_trits_pack.cu)
     target_link_libraries(packing_cuda_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
-    target_include_directories(packing_cuda_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(packing_cuda_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
     set_target_properties(packing_cuda_benchmarks PROPERTIES
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_ARCHITECTURES "75;80;86;89")
