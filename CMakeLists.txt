@@ -21,8 +21,7 @@ find_package(MPFRCPP 2.7.0 REQUIRED)
 set(CMAKE_CXX_STANDARD 20)
 
 # Include directories
-include_directories(${CMAKE_SOURCE_DIR}/include/common)
-include_directories(${CMAKE_SOURCE_DIR}/include/cpu)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
 
 
