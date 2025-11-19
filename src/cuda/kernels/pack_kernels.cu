@@ -13,16 +13,18 @@ template <std::size_t Count, class UInt>
 __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     UInt packed = 0;
     UInt multiplier = 1;
+
+    constexpr auto pow_base = [](size_t exponent) constexpr {
+        UInt result = 1;
+        for (size_t loops = 0; loops < exponent; loops++) {
+            result *= DualTrits::BASE;
+        }
+        return result;
+    };
     
     // Encoding order: direction first, then exponent
     for (std::size_t i = 0; i < Count; ++i) {
-        const auto& t = dual_trits[i];
-        
-        packed += static_cast<UInt>(t.getDirection()) * multiplier;
-        multiplier *= DualTrits::BASE;
-        
-        packed += static_cast<UInt>(t.exponent) * multiplier;
-        multiplier *= DualTrits::BASE;
+        packed += pow_base(2 * i) * dual_trits[i].asRawPackedBits();
     }
     return packed;
 }
@@ -30,14 +32,23 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
 // Device function: unpack UInt into Count dual-trits
 template <std::size_t Count, class UInt>
 __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) noexcept {
+
+    constexpr auto pow_base = [](size_t exponent) constexpr {
+        UInt result = 1;
+        for (size_t loops = 0; loops < exponent; loops++) {
+            result *= DualTrits::BASE;
+        }
+        return result;
+    };
+
     for (std::size_t i = 0; i < Count; ++i) {
-        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        
-        out[i].setDirection(dir);
-        out[i].setExponent(exp);
+        UInt bits = packed / pow_base(2 * i);
+        auto dir = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+        bits /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+
+        out[Count - 1 - i].setDirection(dir);
+        out[Count - 1 - i].setExponent(exp);
     }
 }
 

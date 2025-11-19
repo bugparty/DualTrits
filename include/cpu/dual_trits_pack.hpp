@@ -9,6 +9,7 @@
 #include <limits>
 #include <type_traits>
 
+
 // Simple constexpr integer power
 constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
     unsigned long long r = 1;
@@ -28,17 +29,19 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
                   "UInt does not have enough bits for Count dual-trits");
 
     UInt packed = 0;
-    UInt multiplier = 1;
+
+    constexpr auto pow_base = [](size_t exponent) constexpr {
+        UInt result = 1;
+        for (size_t loops = 0; loops < exponent; loops++) {
+            result *= DualTrits::BASE;
+        }
+        return result;
+    };
 
     // Encoding order: direction first, then exponent
+    #pragma omp parallel for reduction(+: packed)
     for (std::size_t i = 0; i < Count; ++i) {
-        const DualTrits& t = dual_trits[i];
-
-        packed += static_cast<UInt>(t.getDirection()) * multiplier;
-        multiplier *= DualTrits::BASE;
-
-        packed += static_cast<UInt>(t.getExponent()) * multiplier;
-        multiplier *= DualTrits::BASE;
+        packed += pow_base(2 * i) * dual_trits[Count - 1 - i].asRawPackedBits();
     }
     return packed;
 }
@@ -75,14 +78,22 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     }();
     static_assert(fits, "UInt is not wide enough for Count dual-trits (2*Count base-3 digits).");
 
-    for (std::size_t i = 0; i < Count; ++i) {
-        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
+    constexpr auto pow_base = [](size_t exponent) constexpr {
+        UInt result = 1;
+        for (size_t loops = 0; loops < exponent; loops++) {
+            result *= DualTrits::BASE;
+        }
+        return result;
+    };
 
-        out[i].setDirection(dir);
-        out[i].setExponent(exp);
+    for (std::size_t i = 0; i < Count; ++i) {
+        UInt bits = packed / pow_base(2 * i);
+        auto dir = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+        bits /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+
+        out[Count - 1 - i].setDirection(dir);
+        out[Count - 1 - i].setExponent(exp);
     }
 }
 
