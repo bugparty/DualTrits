@@ -17,11 +17,11 @@ def get_benchmark_map(data):
         return {}
     return {b['name']: b for b in data['benchmarks']}
 
-def calculate_total_time(data):
+def calculate_total_throughput(data):
     if not data or 'benchmarks' not in data:
-        return float('inf')
-    # Sum of real_time for all benchmarks
-    return sum(b['real_time'] for b in data['benchmarks'])
+        return 0.0
+    # Sum of bytes_per_second for all benchmarks
+    return sum(b.get('bytes_per_second', 0) for b in data['benchmarks'])
 
 def main():
     # Load current results
@@ -42,11 +42,11 @@ def main():
     prev_map = get_benchmark_map(prev_data)
     best_map = get_benchmark_map(best_data)
 
-    # Calculate scores (lower is better)
-    current_score = calculate_total_time(current_data)
-    best_score = calculate_total_time(best_data)
+    # Calculate scores (higher is better)
+    current_score = calculate_total_throughput(current_data)
+    best_score = calculate_total_throughput(best_data)
 
-    is_new_best = current_score < best_score
+    is_new_best = current_score > best_score
     
     # Generate Summary Markdown
     summary = []
@@ -58,28 +58,31 @@ def main():
     else:
         summary.append(f"**Best Record:** `{best_sha[:7]}`")
 
-    summary.append("\n| Benchmark | Current (ns) | vs Previous | vs Best |")
+    summary.append("\n| Benchmark | Current (MB/s) | vs Previous | vs Best |")
     summary.append("|---|---|---|---|")
 
     for name, curr_b in current_map.items():
-        curr_time = curr_b['real_time']
+        curr_bps = curr_b.get('bytes_per_second', 0)
+        curr_mbs = curr_bps / (1024 * 1024)
         
         # Compare with Previous
         prev_str = "-"
         if name in prev_map:
-            prev_time = prev_map[name]['real_time']
-            diff = (curr_time - prev_time) / prev_time * 100
-            icon = "🔴" if diff > 5 else ("🟢" if diff < -5 else "⚪")
-            prev_str = f"{diff:+.2f}% {icon}"
+            prev_bps = prev_map[name].get('bytes_per_second', 0)
+            if prev_bps > 0:
+                diff = (curr_bps - prev_bps) / prev_bps * 100
+                icon = "🟢" if diff > 5 else ("🔴" if diff < -5 else "⚪")
+                prev_str = f"{diff:+.2f}% {icon}"
 
         # Compare with Best
         best_str = "-"
         if name in best_map:
-            best_time = best_map[name]['real_time']
-            diff = (curr_time - best_time) / best_time * 100
-            best_str = f"{diff:+.2f}%"
+            best_bps = best_map[name].get('bytes_per_second', 0)
+            if best_bps > 0:
+                diff = (curr_bps - best_bps) / best_bps * 100
+                best_str = f"{diff:+.2f}%"
 
-        summary.append(f"| `{name}` | {curr_time:.2f} | {prev_str} | {best_str} |")
+        summary.append(f"| `{name}` | {curr_mbs:.2f} | {prev_str} | {best_str} |")
 
     # Write summary to GITHUB_STEP_SUMMARY
     summary_text = "\n".join(summary)
@@ -98,7 +101,7 @@ def main():
         for b in data.get("benchmarks", []):
             minified["benchmarks"].append({
                 "name": b["name"],
-                "real_time": b["real_time"]
+                "bytes_per_second": b.get("bytes_per_second", 0)
             })
         return json.dumps(minified, separators=(',', ':'))
 
