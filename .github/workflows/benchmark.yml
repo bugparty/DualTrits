@@ -1,5 +1,7 @@
 name: Benchmark
-
+permissions:
+  actions: write
+  contents: read
 on:
   push:
     branches: ["main", "master", "features/**"]
@@ -8,16 +10,35 @@ on:
 
 jobs:
   benchmark:
-    runs-on: ubuntu-latest
+    name: Benchmark ${{ matrix.target_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target_name: linux_x64
+          - os: macos-latest
+            target_name: macos_arm64
+          # Note: ubuntu-24.04-arm is available in public beta or specific plans.
+          # If this fails, you might need to use a self-hosted runner or wait for availability.
+          - os: ubuntu-24.04-arm
+            target_name: linux_arm64
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libmpfr-dev libmpfrc++-dev libgmp-dev
+          sudo apt-get install -y libmpfr-dev libmpfrc++-dev libgmp-dev cmake build-essential
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install mpfr gmp cmake
 
       - name: Configure CMake (Release)
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -32,34 +53,42 @@ jobs:
       - name: Compare and Update Benchmarks
         env:
           GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GITHUB_TOKEN }}
-          PREV_BENCHMARK_JSON: ${{ vars.PREV_BENCHMARK_JSON }}
-          BEST_BENCHMARK_JSON: ${{ vars.BEST_BENCHMARK_JSON }}
-          BEST_BENCHMARK_SHA: ${{ vars.BEST_BENCHMARK_SHA }}
         run: |
-          # Ensure the script is executable (if needed) or just run with python
+          # Determine variable names based on matrix target
+          SUFFIX=$(echo "${{ matrix.target_name }}" | tr '[:lower:]' '[:upper:]')
+          VAR_PREV="PREV_BENCHMARK_JSON_${SUFFIX}"
+          VAR_BEST="BEST_BENCHMARK_JSON_${SUFFIX}"
+          VAR_SHA="BEST_BENCHMARK_SHA_${SUFFIX}"
+          
+          echo "Target: ${{ matrix.target_name }}"
+          echo "Using variables: $VAR_PREV, $VAR_BEST"
+
+          # Fetch existing variables dynamically using gh cli
+          # We use || true to suppress errors if variables don't exist yet
+          export PREV_BENCHMARK_JSON=$(gh variable get $VAR_PREV --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_JSON=$(gh variable get $VAR_BEST --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_SHA=$(gh variable get $VAR_SHA --json value -q .value 2>/dev/null || echo "")
+
           python3 .github/scripts/compare_benchmarks.py
           
           # Check if we need to update variables
-          # Note: GITHUB_TOKEN usually cannot update variables. 
-          # You need a PAT with 'repo' or 'variables' scope stored as BENCHMARK_TOKEN.
-          
           if [ -f next_prev_benchmark.json ]; then
-            echo "Updating PREV_BENCHMARK_JSON..."
-            gh variable set PREV_BENCHMARK_JSON < next_prev_benchmark.json
+            echo "Updating $VAR_PREV..."
+            gh variable set $VAR_PREV < next_prev_benchmark.json
           fi
           
           if [ -f next_best_benchmark.json ]; then
-            echo "Updating BEST_BENCHMARK_JSON..."
-            gh variable set BEST_BENCHMARK_JSON < next_best_benchmark.json
+            echo "Updating $VAR_BEST..."
+            gh variable set $VAR_BEST < next_best_benchmark.json
             
             if [ -f next_best_sha.txt ]; then
-               gh variable set BEST_BENCHMARK_SHA < next_best_sha.txt
+               gh variable set $VAR_SHA < next_best_sha.txt
             fi
           fi
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-results
+          name: benchmark-results-${{ matrix.target_name }}
           path: benchmark_results.json
           retention-days: 30
