@@ -21,16 +21,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "Building benchmarks in Release mode..."
+echo "Building cuda benchmarks in Release mode..."
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target packing_benchmarks
+cmake --build build --target packing_cuda_benchmarks
 
 echo ""
-echo "Running benchmarks..."
+echo "Running cuda benchmarks..."
 
 if [ "$OUTPUT_JSON" = true ]; then
     echo "Outputting results in JSON format..."
-    ./build/packing_benchmarks --benchmark_format=json "${BENCHMARK_ARGS[@]}"
+    ./build/packing_cuda_benchmarks --benchmark_format=json "${BENCHMARK_ARGS[@]}"
 else
-    ./build/packing_benchmarks "${BENCHMARK_ARGS[@]}"
+    ./build/packing_cuda_benchmarks "${BENCHMARK_ARGS[@]}"
 fi
