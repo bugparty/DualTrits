@@ -52,7 +52,7 @@ jobs:
 
       - name: Compare and Update Benchmarks
         env:
-          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BENCHMARK_TOKEN || secrets.GH_PAT }}
         run: |
           # Determine variable names based on matrix target
           SUFFIX=$(echo "${{ matrix.target_name }}" | tr '[:lower:]' '[:upper:]')
