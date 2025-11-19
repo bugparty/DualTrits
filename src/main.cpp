@@ -1,5 +1,5 @@
 #include <iostream>
-#include "DualTrits.hpp"
+#include "common/DualTrits.hpp"
 
 int main() {
     for (uint8_t exponent = 0; exponent < 3; exponent++) {
