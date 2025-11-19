@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "DualTrits.h"
-#include "dual_trits_pack.hpp"
+#include "common/DualTrits.hpp"
+#include "cpu/dual_trits_pack.hpp"
 
 // Helper: decode an integer into 10 base-3 digits and fill 5 DualTrits
 static void fill_dual_trits_from_index(uint32_t idx, DualTrits (&arr)[5]) {

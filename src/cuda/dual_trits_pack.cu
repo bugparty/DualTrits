@@ -3,8 +3,8 @@
 // CUDA implementation of dual trits packing
 //
 
-#include "dual_trits_pack.cuh"
-#include "kernels/pack_kernels.cu"
+#include "cuda/dual_trits_pack.cuh"
+#include "cuda/kernels/pack_kernels.cuh"
 
 // Explicit template instantiations for common types
 template __global__ void pack_kernel<5, std::uint16_t>(DualTrits const*, std::uint16_t*, int);

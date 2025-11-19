@@ -2,7 +2,7 @@
 // Created by bowman on 2025/10/22.
 //
 
-#include "DualTrits.h"
+#include "common/DualTrits.hpp"
 #include <limits>
 
 typedef int8_t wide_t;

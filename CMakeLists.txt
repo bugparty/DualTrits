@@ -22,11 +22,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(${CMAKE_SOURCE_DIR}/src/common)
-include_directories(${CMAKE_SOURCE_DIR}/src/cpu)
+# include_directories(${CMAKE_SOURCE_DIR}/src/common)
+# include_directories(${CMAKE_SOURCE_DIR}/src/cpu)
+include_directories(${CMAKE_SOURCE_DIR}/include/common)
+include_directories(${CMAKE_SOURCE_DIR}/include/cpu)
 
 if(ENABLE_CUDA)
-    include_directories(${CMAKE_SOURCE_DIR}/src/cuda)
+    include_directories(${CMAKE_SOURCE_DIR}/include/cuda)
 endif()
 
 # Configure a header file to pass CUDA availability to source code
@@ -110,7 +112,7 @@ gtest_discover_tests(precision_tests)
 # Benchmarks with Google Benchmark
 # =========================
 add_executable(packing_benchmarks
-        benchmarks/benchmark_packing.cpp
+        benchmarks/benchmark_cpu_packing.cpp
         src/common/DualTrits.cpp
         src/cpu/dual_trits_pack.cpp)
 target_link_libraries(packing_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})

@@ -8,7 +8,7 @@
 
 #include <cuda_runtime.h>
 #include <cstdint>
-#include "DualTrits.h"
+#include "common/DualTrits.hpp"
 
 // Device-side packing functions
 template <std::size_t Count, class UInt>

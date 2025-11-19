@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "DualTrits.h"
+#include "common/DualTrits.hpp"
 
 /*
  * DualTrits multiplication tests
