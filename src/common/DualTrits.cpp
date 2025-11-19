@@ -229,8 +229,17 @@ DualTrits DualTrits::operator+(const DualTrits& other) const {
     compute_t x,y;
     x = this->mul3();
     y = other.mul3();
-    compute_t sum = x + y;
-    return round_mul3(sum);
+    if (x > y){//keep x <= y
+        std::swap(x,y);
+    }
+    //hardcoded rule to set 0 + 1/3 = 1
+    if (x == 0 && y == 1){
+        return round_mul3(3);
+    }else{
+        compute_t sum = x + y;
+        return round_mul3(sum);
+    }
+
 }
 DualTrits DualTrits::operator-(const DualTrits& other) const {
     //exact compute
