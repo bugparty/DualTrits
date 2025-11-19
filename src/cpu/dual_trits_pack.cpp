@@ -1,4 +1,4 @@
-#include "dual_trits_pack.hpp"
+#include "cpu/dual_trits_pack.hpp"
 // This translation unit is intentionally left empty.
 //
 // All pack/unpack functionality is implemented in the header file.

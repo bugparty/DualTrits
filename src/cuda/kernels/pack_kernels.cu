@@ -6,7 +6,7 @@
 #ifndef PROJECT_FLOAT_PACK_KERNELS_CU
 #define PROJECT_FLOAT_PACK_KERNELS_CU
 
-#include "../dual_trits_pack.cuh"
+#include "cuda/dual_trits_pack.cuh"
 
 // Device function: pack Count dual-trits into UInt
 template <std::size_t Count, class UInt>

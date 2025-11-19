@@ -3,8 +3,8 @@
 // CUDA implementation of dual trits packing
 //
 
-#include "dual_trits_pack.cuh"
-#include "kernels/pack_kernels.cu"
+#include "cuda/dual_trits_pack.cuh"
+#include "cuda/kernels/pack_kernels.cuh"
 
 // Explicit template instantiations for common types
 template __global__ void pack_kernel<5, std::uint16_t>(DualTrits const*, std::uint16_t*, int);
@@ -26,7 +26,13 @@ void pack_dual_trits_batch_cuda(DualTrits const* h_input, UInt* h_output, int n)
     cudaMalloc(&d_output, n * sizeof(UInt));
     
     // Copy input to device
-    cudaMemcpy(d_input, h_input, n * Count * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaError_t err = cudaMemcpy(d_input, h_input, n * Count * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy (HostToDevice) failed: %s\n", cudaGetErrorString(err));
+        cudaFree(d_input);
+        cudaFree(d_output);
+        return;
+    }
     
     // Launch kernel
     int blockSize = 256;

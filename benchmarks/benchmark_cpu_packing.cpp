@@ -2,8 +2,8 @@
 #include <random>
 #include <vector>
 #include <array>
-#include "DualTrits.h"
-#include "dual_trits_pack.hpp"
+#include "common/DualTrits.hpp"
+#include "cpu/dual_trits_pack.hpp"
 
 // Random number generator for creating test data
 static std::random_device rd;
@@ -140,7 +140,7 @@ static void BM_Pack20_Batch(benchmark::State& state) {
         uint64_t sink = 0;
         for (int i = 0; i < N; ++i) {
             auto packed = pack20(inputs[i].data());
-            benchmark::DoNotOptimize(sink += packed);
+            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed));
         }
         benchmark::ClobberMemory();
     }
