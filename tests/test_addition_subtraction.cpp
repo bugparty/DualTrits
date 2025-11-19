@@ -36,6 +36,14 @@ TEST(DualTritsAddition, OnePlusZero) {
     EXPECT_EQ(result.getDirection(), 1u);  // 1 + 0 = 1
 }
 
+TEST(DualTritsAddition, OnePlusOneThird) {
+    DualTrits a(0, 1);  // 1
+    DualTrits b(2, 1);  // 1/3
+    DualTrits result = a + b;
+    EXPECT_EQ(result.getExponent(), 0u);
+    EXPECT_EQ(result.getDirection(), 1u);  // 1 + 1/3 = 1
+}
+
 TEST(DualTritsAddition, OnePlusOne) {
     DualTrits a(0, 1);  // 1
     DualTrits b(0, 1);  // 1
@@ -71,6 +79,14 @@ TEST(DualTritsAddition, ThreePlusOne) {
     EXPECT_EQ(result.getDirection(), 0u);  // inf
 }
 
+TEST(DualTritsAddition, ZeroPlusOneThird) {
+    DualTrits a(0, 0);  // 0
+    DualTrits b(2, 1);  // 1/3
+    DualTrits result = a + b;
+    // 0 + 1/3 = 1
+    EXPECT_EQ(result.getExponent(), 0u);
+    EXPECT_EQ(result.getDirection(), 1u);  
+}
 TEST(DualTritsAddition, MinusOnePlusOne) {
     DualTrits a(0, 2);  // -1
     DualTrits b(0, 1);  // 1

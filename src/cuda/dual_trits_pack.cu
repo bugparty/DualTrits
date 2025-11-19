@@ -71,7 +71,30 @@ void unpack_dual_trits_batch_cuda(UInt const* h_input, DualTrits* h_output, int 
     cudaFree(d_input);
     cudaFree(d_output);
 }
+template <>
+void unpack_dual_trits_batch_cuda<5, std::uint16_t>(std::uint16_t const* h_input, DualTrits* h_output, int n) {
+    // Allocate device memory
+    std::uint16_t* d_input;
+    DualTrits* d_output;
 
+    cudaMalloc(&d_input, n * sizeof(std::uint16_t));
+    cudaMalloc(&d_output, n * 5 * sizeof(DualTrits));
+
+    // Copy input to device
+    cudaMemcpy(d_input, h_input, n * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
+
+    // Launch kernel
+    int blockSize = 256;
+    int gridSize = (n + blockSize - 1) / blockSize;
+    unpack_kernel<5, std::uint16_t><<<gridSize, blockSize>>>(d_input, d_output, n);
+
+    // Copy result back to host
+    cudaMemcpy(h_output, d_output, n * 5 * sizeof(DualTrits), cudaMemcpyDeviceToHost);
+
+    // Free device memory
+    cudaFree(d_input);
+    cudaFree(d_output);
+}
 // Explicit template instantiations for host API
 template void pack_dual_trits_batch_cuda<5, std::uint16_t>(DualTrits const*, std::uint16_t*, int);
 template void pack_dual_trits_batch_cuda<10, std::uint32_t>(DualTrits const*, std::uint32_t*, int);

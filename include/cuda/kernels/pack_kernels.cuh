@@ -11,25 +11,69 @@
 // CUDA implementation of dual trits packing
 //
 
-#include "cuda/dual_trits_pack.cuh"
-#include "cuda/kernels/pack_kernels.cu"
+#include "dual_trits_pack.cuh"
 
-// Explicit template instantiations for common types
-template __global__ void pack_kernel<5, std::uint16_t>(DualTrits const*, std::uint16_t*, int);
-template __global__ void pack_kernel<10, std::uint32_t>(DualTrits const*, std::uint32_t*, int);
-template __global__ void pack_kernel<20, std::uint64_t>(DualTrits const*, std::uint64_t*, int);
+// Device function: pack Count dual-trits into UInt
+template <std::size_t Count, class UInt>
+__device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
+    UInt packed = 0;
+    UInt multiplier = 1;
+    
+    // Encoding order: direction first, then exponent
+    for (std::size_t i = 0; i < Count; ++i) {
+        const auto& t = dual_trits[i];
+        
+        packed += static_cast<UInt>(t.getDirection()) * multiplier;
+        multiplier *= DualTrits::BASE;
+        
+        packed += static_cast<UInt>(t.getExponent()) * multiplier;
+        multiplier *= DualTrits::BASE;
+    }
+    return packed;
+}
 
-template __global__ void unpack_kernel<5, std::uint16_t>(std::uint16_t const*, DualTrits*, int);
-template __global__ void unpack_kernel<10, std::uint32_t>(std::uint32_t const*, DualTrits*, int);
-template __global__ void unpack_kernel<20, std::uint64_t>(std::uint64_t const*, DualTrits*, int);
+// Device function: unpack UInt into Count dual-trits
+template <std::size_t Count, class UInt>
+__device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) noexcept {
+    for (std::size_t i = 0; i < Count; ++i) {
+        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        
+        out[i].setDirection(dir);
+        out[i].setExponent(exp);
+    }
+}
+template <>
+__device__ constexpr void unpack_dual_trits_cuda<5,std::uint16_t>(std::uint16_t packed, DualTrits* out) noexcept {
+    for (std::size_t i = 0; i < 5; ++i) {
+        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        out[i] = DualTrits(dir, exp);
+    }
+}
 
-// Explicit template instantiations for host API
-template void pack_dual_trits_batch_cuda<5, std::uint16_t>(DualTrits const*, std::uint16_t*, int);
-template void pack_dual_trits_batch_cuda<10, std::uint32_t>(DualTrits const*, std::uint32_t*, int);
-template void pack_dual_trits_batch_cuda<20, std::uint64_t>(DualTrits const*, std::uint64_t*, int);
+// Kernel: pack batch of dual-trits arrays
+template <std::size_t Count, class UInt>
+__global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if (idx < n) {
+        d_output[idx] = pack_dual_trits_cuda<Count, UInt>(&d_input[idx * Count]);
+    }
+}
 
-template void unpack_dual_trits_batch_cuda<5, std::uint16_t>(std::uint16_t const*, DualTrits*, int);
-template void unpack_dual_trits_batch_cuda<10, std::uint32_t>(std::uint32_t const*, DualTrits*, int);
-template void unpack_dual_trits_batch_cuda<20, std::uint64_t>(std::uint64_t const*, DualTrits*, int);
+// Kernel: unpack batch of packed integers
+template <std::size_t Count, class UInt>
+__global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if (idx < n) {
+        unpack_dual_trits_cuda<Count, UInt>(d_input[idx], &d_output[idx * Count]);
+    }
+}
 
-#endif //PROJECT_FLOAT_CUDA_KERNELS_H
+#endif // PROJECT_FLOAT_CUDA_KERNELS_H

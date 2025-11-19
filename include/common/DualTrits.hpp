@@ -21,6 +21,10 @@ public:
     typedef int8_t wide_t;
     typedef int16_t compute_t;
     static constexpr wide_t BASE = 3;
+    
+    // Constants for positive and negative infinity
+    static const DualTrits POSITIVE_INFINITY;
+    static const DualTrits NEGATIVE_INFINITY;
     /*
     our dual trits representation:
     exponent: 0 -> 0 (3^0)
@@ -83,8 +87,10 @@ public:
     }
     
     compute_t mul3() const;
-    DualTrits divide3(compute_t num) const;
+    static DualTrits divide3(compute_t num);
     DualTrits round_mul3(compute_t num) const;
+    static DualTrits rounding_float(float num);
+    static DualTrits construct_from_index(int index);
     
     // Helper functions for multiplication
     [[nodiscard]] static int reinterpt_exponent(wide_t exp) noexcept;
