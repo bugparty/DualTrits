@@ -18,17 +18,16 @@ static DualTrits randomDualTrits() {
 // Benchmark: Pack 5 DualTrits into uint16_t (Batch version)
 static void BM_Pack5_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,5>> inputs(N);
+    std::vector<DualTrits> inputs(N * 5);
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 5; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < N * 5; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
         uint64_t sink = 0;
+        auto packed = pack5(inputs.data(), N * 5);
         for (int i = 0; i < N; ++i) {
-            auto packed = pack5(inputs[i].data());
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed));
+            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
         }
         benchmark::ClobberMemory();
     }
@@ -74,17 +73,16 @@ BENCHMARK(BM_Unpack5_Batch)
 // Benchmark: Pack 10 DualTrits into uint32_t (Batch version)
 static void BM_Pack10_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,10>> inputs(N);
+    std::vector<DualTrits> inputs(N * 10);
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 10; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < N * 10; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
         uint64_t sink = 0;
+        auto packed = pack10(inputs.data(), N * 10);
         for (int i = 0; i < N; ++i) {
-            auto packed = pack10(inputs[i].data());
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed));
+            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
         }
         benchmark::ClobberMemory();
     }
@@ -130,17 +128,16 @@ BENCHMARK(BM_Unpack10_Batch)
 // Benchmark: Pack 20 DualTrits into uint64_t (Batch version)
 static void BM_Pack20_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,20>> inputs(N);
+    std::vector<DualTrits> inputs(N * 20);
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 20; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < N * 20; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
         uint64_t sink = 0;
+        auto packed = pack20(inputs.data(), N * 20);
         for (int i = 0; i < N; ++i) {
-            auto packed = pack20(inputs[i].data());
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed));
+            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
         }
         benchmark::ClobberMemory();
     }
