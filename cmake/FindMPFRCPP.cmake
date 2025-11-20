@@ -4,6 +4,7 @@ find_path(MPFRCPP_INCLUDES
   PATHS
   ${MPFRCPP_ROOT}
   ${INCLUDE_INSTALL_DIR}
+  "include/3rdparty"
 )
 
 
