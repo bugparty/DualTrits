@@ -177,19 +177,16 @@ BENCHMARK(BM_Unpack20_Batch)
 // Benchmark: Round-trip pack and unpack for 5 DualTrits (Batch version)
 static void BM_RoundTrip5_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,5>> inputs(N);
-    std::vector<std::array<DualTrits,5>> outputs(N);
+    std::vector<DualTrits> inputs(N * 5);
+    std::vector<DualTrits> outputs(N * 5);
     
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 5; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < 5 * N; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        for (int i = 0; i < N; ++i) {
-            auto packed = pack5(inputs[i].data());
-            unpack5(packed, outputs[i].data());
-        }
+        auto packed = pack5(inputs.data(), N * 5);
+        unpack5(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -205,19 +202,16 @@ BENCHMARK(BM_RoundTrip5_Batch)
 // Benchmark: Round-trip pack and unpack for 10 DualTrits (Batch version)
 static void BM_RoundTrip10_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,10>> inputs(N);
-    std::vector<std::array<DualTrits,10>> outputs(N);
+    std::vector<DualTrits> inputs(N * 10);
+    std::vector<DualTrits> outputs(N * 10);
     
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 10; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < N * 10; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        for (int i = 0; i < N; ++i) {
-            auto packed = pack10(inputs[i].data());
-            unpack10(packed, outputs[i].data());
-        }
+        auto packed = pack10(inputs.data(), N * 10);
+        unpack10(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -233,19 +227,16 @@ BENCHMARK(BM_RoundTrip10_Batch)
 // Benchmark: Round-trip pack and unpack for 20 DualTrits (Batch version)
 static void BM_RoundTrip20_Batch(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    std::vector<std::array<DualTrits,20>> inputs(N);
-    std::vector<std::array<DualTrits,20>> outputs(N);
+    std::vector<DualTrits> inputs(N * 20);
+    std::vector<DualTrits> outputs(N * 20);
     
     // Initialize inputs with random data
-    for (auto& a : inputs)
-        for (int i = 0; i < 20; ++i)
-            a[i] = randomDualTrits();
+    for (int i = 0; i < N * 20; ++i)
+        inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        for (int i = 0; i < N; ++i) {
-            auto packed = pack20(inputs[i].data());
-            unpack20(packed, outputs[i].data());
-        }
+        auto packed = pack20(inputs.data(), N * 20);
+        unpack20(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
