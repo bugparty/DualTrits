@@ -1,3 +1,6 @@
+# Note: Search system locations for most up-to-date mpreal.h
+# If not found, use the (older) vendored version in include/3rdparty
+# as a fall-back.
 find_path(MPFRCPP_INCLUDES
   NAMES
   mpreal.h
