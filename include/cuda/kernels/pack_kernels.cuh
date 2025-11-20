@@ -27,8 +27,10 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     };
     
     // Encoding order: direction first, then exponent
+    UInt exponent = 1;
     for (std::size_t i = 0; i < Count; ++i) {
-        packed += pow_base(2 * i) * dual_trits[i].asRawPackedBits();
+        packed += exponent * dual_trits[Count - 1 - i].asRawPackedBits();
+        exponent *= pow_base(2);
     }
     return packed;
 }
@@ -46,10 +48,10 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
     };
 
     for (std::size_t i = 0; i < Count; ++i) {
-        UInt bits = packed / pow_base(2 * i);
-        auto dir = static_cast<std::uint16_t>(bits % DualTrits::BASE);
-        bits /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
 
         out[Count - 1 - i].setDirection(dir);
         out[Count - 1 - i].setExponent(exp);
