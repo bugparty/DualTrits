@@ -126,6 +126,16 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     }
 }
 
+// unpack_dual_trits assumes that for n packed values, there will be n * Count
+// elements allocated for DualTrits in out.
+template <std::size_t Count, class UInt>
+constexpr void unpack_dual_trits(const UInt* const packed, DualTrits* out, size_t n) noexcept {
+    #pragma omp parallel for
+    for (size_t i = 0; i < n; i++) {
+        unpack_dual_trits<Count, UInt>(packed[i], out + (Count * i));
+    }
+}
+
 constexpr std::uint16_t pack5(DualTrits const dual_trits[]) {
     return pack_dual_trits<5, std::uint16_t>(dual_trits);
 }
@@ -145,14 +155,23 @@ constexpr std::vector<std::uint64_t> pack20(DualTrits const dual_trits[], size_t
     return pack_dual_trits<20, std::uint64_t>(dual_trits, n);
 }
 
-constexpr void unpack5 (std::uint16_t packed, DualTrits* out) {
-    unpack_dual_trits<5 , std::uint16_t>(packed, out);
+constexpr void unpack5(std::uint16_t packed, DualTrits* out) {
+    unpack_dual_trits<5, std::uint16_t>(packed, out);
+}
+constexpr void unpack5(const std::uint16_t* const packed, DualTrits* out, size_t n) {
+    unpack_dual_trits<5, std::uint16_t>(packed, out, n);
 }
 constexpr void unpack10(std::uint32_t packed, DualTrits* out) {
     unpack_dual_trits<10, std::uint32_t>(packed, out);
 }
+constexpr void unpack10(const std::uint32_t* const packed, DualTrits* out, size_t n) {
+    unpack_dual_trits<10, std::uint32_t>(packed, out, n);
+}
 constexpr void unpack20(std::uint64_t packed, DualTrits* out) {
     unpack_dual_trits<20, std::uint64_t>(packed, out);
+}
+constexpr void unpack20(const std::uint64_t* const packed, DualTrits* out, size_t n) {
+    unpack_dual_trits<20, std::uint64_t>(packed, out, n);
 }
 
 #endif //PROJECT_FLOAT_PACKING_H
