@@ -26,11 +26,6 @@ jobs:
           nvcc --version
           nvidia-smi
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libmpfr-dev libmpfrc++-dev libgmp-dev cmake build-essential
-
       - name: Configure CMake (Release)
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
