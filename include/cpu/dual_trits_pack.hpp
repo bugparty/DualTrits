@@ -30,20 +30,17 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
                   "UInt does not have enough bits for Count dual-trits");
 
     UInt packed = 0;
-
-    constexpr auto pow_base = [](size_t exponent) constexpr {
-        UInt result = 1;
-        for (size_t loops = 0; loops < exponent; loops++) {
-            result *= DualTrits::BASE;
-        }
-        return result;
-    };
+    UInt multiplier = 1;
 
     // Encoding order: direction first, then exponent
-    UInt exponent = 1;
     for (std::size_t i = 0; i < Count; ++i) {
-        packed += exponent * dual_trits[Count - 1 - i].asRawPackedBits();
-        exponent *= pow_base(2);
+        const DualTrits& t = dual_trits[i];
+
+        packed += static_cast<UInt>(t.getDirection()) * multiplier;
+        multiplier *= DualTrits::BASE;
+
+        packed += static_cast<UInt>(t.getExponent()) * multiplier;
+        multiplier *= DualTrits::BASE;
     }
 
     return packed;
@@ -55,22 +52,31 @@ constexpr std::vector<UInt> pack_dual_trits(DualTrits const dual_trits[], size_t
     std::vector<UInt> packed(totalPacks);
 
     size_t offset = n % Count;
-    if (offset != 0) {
-        DualTrits firstPack[5] = {DualTrits(0)};
-        size_t dualTritsIndex = 0;
-        for (size_t firstPackIndex = Count - offset; firstPackIndex < Count; firstPackIndex++) {
-            firstPack[firstPackIndex] = dual_trits[dualTritsIndex];
-            dualTritsIndex++;
-        }
-        packed[0] = pack_dual_trits<Count, UInt>(firstPack);
-    } else {
-        packed[0] = pack_dual_trits<Count, UInt>(dual_trits);
-    }
 
-    size_t startPackIndex = n % 5;
-    #pragma omp parallel for
-    for (size_t packIndex = 1; packIndex < totalPacks; packIndex++) {
-        packed[packIndex] = pack_dual_trits<Count, UInt>(startPackIndex + ((packIndex - 1) * 5) + dual_trits);
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            if (offset != 0) {
+                DualTrits firstPack[5] = {DualTrits(0)};
+                size_t dualTritsIndex = 0;
+                for (size_t firstPackIndex = Count - offset; firstPackIndex < Count; firstPackIndex++) {
+                    firstPack[firstPackIndex] = dual_trits[dualTritsIndex];
+                    dualTritsIndex++;
+                }
+                packed[0] = pack_dual_trits<Count, UInt>(firstPack);
+            } else {
+                packed[0] = pack_dual_trits<Count, UInt>(dual_trits);
+            }
+        }
+
+        #pragma omp section
+        {
+            #pragma omp parallel for schedule(static, Count)
+            for (size_t packIndex = 1; packIndex < totalPacks; packIndex++) {
+                packed[packIndex] = pack_dual_trits<Count, UInt>(offset + ((packIndex - 1) * Count) + dual_trits);
+            }
+        }
     }
     return packed;
 }
@@ -107,14 +113,6 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     }();
     static_assert(fits, "UInt is not wide enough for Count dual-trits (2*Count base-3 digits).");
 
-    constexpr auto pow_base = [](size_t exponent) constexpr {
-        UInt result = 1;
-        for (size_t loops = 0; loops < exponent; loops++) {
-            result *= DualTrits::BASE;
-        }
-        return result;
-    };
-
     for (std::size_t i = 0; i < Count; ++i) {
         auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
@@ -130,7 +128,7 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
 // elements allocated for DualTrits in out.
 template <std::size_t Count, class UInt>
 constexpr void unpack_dual_trits(UInt* packed, DualTrits* out, size_t n) noexcept {
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static, Count)
     for (size_t i = 0; i < n; i++) {
         unpack_dual_trits<Count, UInt>(packed[i], out + (Count * i));
     }
