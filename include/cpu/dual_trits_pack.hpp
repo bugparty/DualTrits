@@ -34,7 +34,7 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
 
     // Encoding order: direction first, then exponent
     for (std::size_t i = 0; i < Count; ++i) {
-        const DualTrits& t = dual_trits[i];
+        const DualTrits& t = dual_trits[Count - 1 - i];
 
         packed += static_cast<UInt>(t.getDirection()) * multiplier;
         multiplier *= DualTrits::BASE;
