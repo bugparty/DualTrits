@@ -26,9 +26,7 @@ static void BM_Pack5_Batch(benchmark::State& state) {
     for (auto _ : state) {
         uint64_t sink = 0;
         auto packed = pack5(inputs.data(), N * 5);
-        for (int i = 0; i < N; ++i) {
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
-        }
+        benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(N));
@@ -79,9 +77,7 @@ static void BM_Pack10_Batch(benchmark::State& state) {
     for (auto _ : state) {
         uint64_t sink = 0;
         auto packed = pack10(inputs.data(), N * 10);
-        for (int i = 0; i < N; ++i) {
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
-        }
+        benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(N));
@@ -132,9 +128,7 @@ static void BM_Pack20_Batch(benchmark::State& state) {
     for (auto _ : state) {
         uint64_t sink = 0;
         auto packed = pack20(inputs.data(), N * 20);
-        for (int i = 0; i < N; ++i) {
-            benchmark::DoNotOptimize(sink += static_cast<uint64_t>(packed[i]));
-        }
+        benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
     state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(N));
