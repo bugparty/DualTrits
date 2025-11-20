@@ -39,20 +39,12 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     };
 
     // Encoding order: direction first, then exponent
-    // #pragma omp parallel for reduction(+: packed)
-    // for (std::size_t i = 0; i < Count; ++i) {
-    //     packed += pow_base(2 * i) * dual_trits[Count - 1 - i].asRawPackedBits();
-    // }
-    //
-    #pragma omp parallel for reduction(+: packed)
-    for (std::size_t i = 0; i < Count; i += 5) {
-        UInt packedTrit1 = pow_base(2 * i      ) * dual_trits[Count - 1 - i    ].asRawPackedBits();
-        UInt packedTrit2 = pow_base(2 * (i + 1)) * dual_trits[Count - 1 - i - 1].asRawPackedBits();
-        UInt packedTrit3 = pow_base(2 * (i + 2)) * dual_trits[Count - 1 - i - 2].asRawPackedBits();
-        UInt packedTrit4 = pow_base(2 * (i + 3)) * dual_trits[Count - 1 - i - 3].asRawPackedBits();
-        UInt packedTrit5 = pow_base(2 * (i + 4)) * dual_trits[Count - 1 - i - 4].asRawPackedBits();
-        packed += packedTrit1 + packedTrit2 + packedTrit3 + packedTrit4 + packedTrit5;
+    UInt exponent = 1;
+    for (std::size_t i = 0; i < Count; ++i) {
+        packed += exponent * dual_trits[Count - 1 - i].asRawPackedBits();
+        exponent *= pow_base(2);
     }
+
     return packed;
 }
 
@@ -96,12 +88,11 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
         return result;
     };
 
-    #pragma omp parallel for
     for (std::size_t i = 0; i < Count; ++i) {
-        UInt bits = packed / pow_base(2 * i);
-        auto dir = static_cast<std::uint16_t>(bits % DualTrits::BASE);
-        bits /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(bits % DualTrits::BASE);
+        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
 
         out[Count - 1 - i].setDirection(dir);
         out[Count - 1 - i].setExponent(exp);
