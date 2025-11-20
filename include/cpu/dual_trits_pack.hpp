@@ -8,6 +8,7 @@
 #include "common/DualTrits.hpp"
 #include <limits>
 #include <type_traits>
+#include <vector>
 
 
 // Simple constexpr integer power
@@ -45,6 +46,32 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
         exponent *= pow_base(2);
     }
 
+    return packed;
+}
+
+template <std::size_t Count, class UInt>
+constexpr std::vector<UInt> pack_dual_trits(DualTrits const dual_trits[], size_t n) {
+    size_t totalPacks = (n + Count - 1) / Count;
+    std::vector<UInt> packed(totalPacks);
+
+    size_t offset = n % 5;
+    if (offset != 0) {
+        DualTrits firstPack[5] = {DualTrits(0)};
+        size_t dualTritsIndex = 0;
+        for (size_t firstPackIndex = Count - offset; firstPackIndex < 5; firstPackIndex++) {
+            firstPack[firstPackIndex] = dual_trits[dualTritsIndex];
+            dualTritsIndex++;
+        }
+        packed[0] = pack_dual_trits<5, std::uint16_t>(firstPack);
+    } else {
+        packed[0] = pack_dual_trits<5, std::uint16_t>(dual_trits);
+    }
+
+    size_t startPackIndex = n % 5;
+    #pragma omp parallel for
+    for (size_t packIndex = 1; packIndex < totalPacks; packIndex++) {
+        packed[packIndex] = pack_dual_trits<5, std::uint16_t>(startPackIndex + ((packIndex - 1) * 5) + dual_trits);
+    }
     return packed;
 }
 
@@ -99,14 +126,23 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     }
 }
 
-constexpr std::uint16_t pack5 (DualTrits const dual_trits[]) {
+constexpr std::uint16_t pack5(DualTrits const dual_trits[]) {
     return pack_dual_trits<5, std::uint16_t>(dual_trits);
+}
+constexpr std::vector<std::uint16_t> pack5(DualTrits const dual_trits[], size_t n) {
+    return pack_dual_trits<5, std::uint16_t>(dual_trits, n);
 }
 constexpr std::uint32_t pack10(DualTrits const dual_trits[]) {
     return pack_dual_trits<10, std::uint32_t>(dual_trits);
 }
+constexpr std::vector<std::uint32_t> pack10(DualTrits const dual_trits[], size_t n) {
+    return pack_dual_trits<10, std::uint32_t>(dual_trits, n);
+}
 constexpr std::uint64_t pack20(DualTrits const dual_trits[]) {
     return pack_dual_trits<20, std::uint64_t>(dual_trits);
+}
+constexpr std::vector<std::uint64_t> pack20(DualTrits const dual_trits[], size_t n) {
+    return pack_dual_trits<20, std::uint64_t>(dual_trits, n);
 }
 
 constexpr void unpack5 (std::uint16_t packed, DualTrits* out) {

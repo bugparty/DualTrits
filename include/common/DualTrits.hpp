@@ -14,7 +14,11 @@
 #include <bitset>
 #include <stdexcept>
 
+#if __has_include(<mpreal.h>)
 #include <mpreal.h>
+#else
+#include <3rdparty/mpreal.h>
+#endif
 
 class DualTrits {
 public:
