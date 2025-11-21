@@ -102,6 +102,19 @@ target_link_libraries(precision_tests PRIVATE GTest::gtest GTest::gtest_main ${M
 target_include_directories(precision_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 gtest_discover_tests(precision_tests)
 
+if(ENABLE_CUDA)
+    add_executable(cuda_packing_tests
+            tests/test_packing_cuda.cpp
+            src/common/DualTrits.cpp
+            src/cpu/dual_trits_pack.cpp
+            src/cuda/dual_trits_pack.cu)
+    target_link_libraries(cuda_packing_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+    target_include_directories(cuda_packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
+    set_target_properties(cuda_packing_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    target_compile_options(cuda_packing_tests PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-expt-relaxed-constexpr>)
+    gtest_discover_tests(cuda_packing_tests)
+endif()
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================
@@ -125,4 +138,3 @@ if(ENABLE_CUDA)
             CUDA_ARCHITECTURES "75;80;86;89")
     target_compile_options(packing_cuda_benchmarks PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-expt-relaxed-constexpr>)
 endif()
-

@@ -45,17 +45,6 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
         out[i].setExponent(exp);
     }
 }
-template <>
-__device__ constexpr void unpack_dual_trits_cuda<5,std::uint16_t>(std::uint16_t packed, DualTrits* out) noexcept {
-    for (std::size_t i = 0; i < 5; ++i) {
-        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        out[i] = DualTrits(dir, exp);
-    }
-}
-
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t Count, class UInt>
 __global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {
