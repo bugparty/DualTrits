@@ -1,0 +1,83 @@
+name: CUDA Benchmark
+permissions:
+  actions: write
+  contents: read
+on:
+  push:
+    branches: ["main", "master", "features/**"]
+  pull_request:
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  benchmark_cuda:
+    name: CUDA Benchmark
+    runs-on: [self-hosted, cuda]
+    environment: dualtrit
+    env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check CUDA installation
+        run: |
+          echo "Checking CUDA installation..."
+          nvcc --version
+          nvidia-smi
+
+      - name: Configure CMake (Release)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build CUDA benchmarks
+        run: cmake --build build --target packing_cuda_benchmarks --config Release
+
+      - name: Run CUDA benchmarks
+        run: |
+          ./build/packing_cuda_benchmarks --benchmark_format=json | tee benchmark_results.json
+
+      - name: Compare and Update Benchmarks
+        run: |
+          # Use CUDA-specific variable names
+          VAR_PREV="PREV_BENCHMARK_JSON_CUDA"
+          VAR_BEST="BEST_BENCHMARK_JSON_CUDA"
+          VAR_SHA="BEST_BENCHMARK_SHA_CUDA"
+          
+          echo "Target: CUDA"
+          echo "Using variables: $VAR_PREV, $VAR_BEST, $VAR_SHA"
+
+          # Fetch existing variables dynamically using gh cli
+          export PREV_BENCHMARK_JSON=$(gh variable get $VAR_PREV --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_JSON=$(gh variable get $VAR_BEST --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_SHA=$(gh variable get $VAR_SHA --json value -q .value 2>/dev/null || echo "")
+
+          python3 .github/scripts/compare_benchmarks.py
+          
+          # Check if we need to update variables
+          if [ -f next_prev_benchmark.json ]; then
+            echo "Updating $VAR_PREV..."
+            gh variable set $VAR_PREV < next_prev_benchmark.json
+          fi
+          
+          if [ -f next_best_benchmark.json ]; then
+            echo "Updating $VAR_BEST..."
+            gh variable set $VAR_BEST < next_best_benchmark.json
+            
+            if [ -f next_best_sha.txt ]; then
+               echo "Updating $VAR_SHA..."
+               gh variable set $VAR_SHA < next_best_sha.txt
+            fi
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-cuda
+          path: benchmark_results.json
+          retention-days: 30
+
+      - name: Display GPU info
+        if: always()
+        run: |
+          echo "GPU Information:"
+          nvidia-smi --query-gpu=name,driver_version,memory.total,memory.free --format=csv
