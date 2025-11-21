@@ -127,7 +127,11 @@ public:
     std::bitset<4> asBits() const noexcept;
     unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
-    __host__ __device__ unsigned int asRawPackedBits() const noexcept;
+    __host__ __device__ unsigned int asRawPackedBits() const noexcept {
+        auto exp = getExponent();
+        auto dir = getDirection();
+        return 3 * exp + dir;
+    }
 
     // template <std::size_t Count, class UInt>
     // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
