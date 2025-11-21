@@ -36,7 +36,11 @@ constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
 // Generic packer: pack `Count` DualTrits into unsigned integer type `UInt`
 template <std::size_t Count, class UInt>
 constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
+#if __cplusplus >= 202002L
     static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned type");
+#else
+    static_assert(std::is_unsigned<UInt>::value, "UInt must be an unsigned integer type.");
+#endif
 
     // Required representable range: BASE^(2*Count) - 1
     constexpr unsigned digits = 2 * Count;
@@ -114,7 +118,11 @@ pack_auto(DualTrits const* dual_trits) {
 
 template <std::size_t Count, class UInt>
 void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
+#if __cplusplus >= 202002L
     static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned integer type.");
+#else
+    static_assert(std::is_unsigned<UInt>::value, "UInt must be an unsigned integer type.");
+#endif
 
     // compile-time container type capacity test
     constexpr bool fits = details::fits<Count, UInt>();
