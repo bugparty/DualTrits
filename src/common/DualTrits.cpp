@@ -40,6 +40,7 @@ double DualTrits::toDouble() const noexcept {
     return this->to<double>();
 }
 
+#ifdef USE_MPFR
 mpfr::mpreal DualTrits::toMPreal() const noexcept {
     auto dir = getDirection();
     auto exp = getExponent();
@@ -61,6 +62,7 @@ mpfr::mpreal DualTrits::toMPreal() const noexcept {
     mpfr::mpreal exponent{reinterpt_digit(exp)};
     return direction * mpfr::pow(base,exponent);
 }
+#endif
 
 std::string DualTrits::toFloatString() const {
     return this->toAsString<float>();
@@ -70,9 +72,11 @@ std::string DualTrits::toDoubleString() const {
     return this->toAsString<double>();
 }
 
+#ifdef USE_MPFR
 std::string DualTrits::toMPrealString() const {
     return toMPreal().toString();
 }
+#endif
 
 DualTrits::compute_t DualTrits::mul3() const {
     //exact compute
