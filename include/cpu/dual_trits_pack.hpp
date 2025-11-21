@@ -47,7 +47,7 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
 }
 
 template <std::size_t Count, class UInt>
-std::vector<UInt> pack_dual_trits(DualTrits const dual_trits[], size_t n) {
+std::vector<UInt> batch_pack_dual_trits(DualTrits const dual_trits[], size_t n) {
     size_t totalPacks = (n + Count - 1) / Count;
     std::vector<UInt> packed(totalPacks);
 
@@ -94,7 +94,7 @@ template <std::size_t Count>
 constexpr smallest_uint_for_dualtrits_t<Count>
 pack_auto(DualTrits const* dual_trits) {
     using U = smallest_uint_for_dualtrits_t<Count>;
-    return pack_dual_trits<Count, U>(dual_trits);
+    return batch_pack_dual_trits<Count, U>(dual_trits);
 }
 
 template <std::size_t Count, class UInt>
@@ -138,19 +138,19 @@ constexpr std::uint16_t pack5(DualTrits const dual_trits[]) {
     return pack_dual_trits<5, std::uint16_t>(dual_trits);
 }
 std::vector<std::uint16_t> batch_pack5(DualTrits const dual_trits[], size_t n) {
-    return pack_dual_trits<5, std::uint16_t>(dual_trits, n);
+    return batch_pack_dual_trits<5, std::uint16_t>(dual_trits, n);
 }
 constexpr std::uint32_t pack10(DualTrits const dual_trits[]) {
     return pack_dual_trits<10, std::uint32_t>(dual_trits);
 }
 std::vector<std::uint32_t> batch_pack10(DualTrits const dual_trits[], size_t n) {
-    return pack_dual_trits<10, std::uint32_t>(dual_trits, n);
+    return batch_pack_dual_trits<10, std::uint32_t>(dual_trits, n);
 }
 constexpr std::uint64_t pack20(DualTrits const dual_trits[]) {
     return pack_dual_trits<20, std::uint64_t>(dual_trits);
 }
 std::vector<std::uint64_t> batch_pack20(DualTrits const dual_trits[], size_t n) {
-    return pack_dual_trits<20, std::uint64_t>(dual_trits, n);
+    return batch_pack_dual_trits<20, std::uint64_t>(dual_trits, n);
 }
 
 void unpack5(std::uint16_t packed, DualTrits* out) {

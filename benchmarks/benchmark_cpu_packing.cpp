@@ -52,7 +52,7 @@ static void BM_Unpack5_Batch(benchmark::State& state) {
     packed_inputs = batch_pack5(unpacked_inputs.data(), N * 5);
 
     for (auto _ : state) {
-        unpack5(packed_inputs.data(), outputs.data(), N);
+        batch_unpack5(packed_inputs.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -103,7 +103,7 @@ static void BM_Unpack10_Batch(benchmark::State& state) {
     packed_inputs = batch_pack10(unpacked_inputs.data(), N * 10);
 
     for (auto _ : state) {
-        unpack10(packed_inputs.data(), outputs.data(), N);
+        batch_unpack10(packed_inputs.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -154,7 +154,7 @@ static void BM_Unpack20_Batch(benchmark::State& state) {
     packed_inputs = batch_pack20(unpacked_inputs.data(), N * 20);
 
     for (auto _ : state) {
-        unpack20(packed_inputs.data(), outputs.data(), N);
+        batch_unpack20(packed_inputs.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -180,7 +180,7 @@ static void BM_RoundTrip5_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         auto packed = batch_pack5(inputs.data(), N * 5);
-        unpack5(packed.data(), outputs.data(), N);
+        batch_unpack5(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -205,7 +205,7 @@ static void BM_RoundTrip10_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         auto packed = batch_pack10(inputs.data(), N * 10);
-        unpack10(packed.data(), outputs.data(), N);
+        batch_unpack10(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
@@ -230,7 +230,7 @@ static void BM_RoundTrip20_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         auto packed = batch_pack20(inputs.data(), N * 20);
-        unpack20(packed.data(), outputs.data(), N);
+        batch_unpack20(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
     }
