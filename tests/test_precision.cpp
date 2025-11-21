@@ -175,7 +175,7 @@ TEST(DualTritsPrecision, DoubleNegativeInfinity) {
 // =============================
 // toMPreal() Precision Tests
 // =============================
-
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, MPrealZero) {
     DualTrits dt(0, 0);  // 0
     mpfr::mpreal result = dt.toMPreal();
@@ -244,11 +244,13 @@ TEST(DualTritsPrecision, MPrealNegativeInfinity) {
     mpfr::mpreal result = dt.toMPreal();
     EXPECT_TRUE(mpfr::isfinite(result) == false || mpfr::isinf(result));
 }
+#endif
 
 // =============================
 // Comparative Precision Tests
 // =============================
 
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, CompareFloatDoubleOneThird) {
     DualTrits dt(2, 1);  // 1/3
     
@@ -268,6 +270,7 @@ TEST(DualTritsPrecision, CompareFloatDoubleOneThird) {
     EXPECT_LE(std::abs(mpreal_as_double - (1.0 / 3.0)),
               std::abs(double_result - (1.0 / 3.0)) + 1e-15);
 }
+#endif
 
 TEST(DualTritsPrecision, AllValuesFloatConsistency) {
     // Test all 9 DualTrits values
@@ -319,6 +322,7 @@ TEST(DualTritsPrecision, AllValuesDoubleConsistency) {
     }
 }
 
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, AllValuesMPrealConsistency) {
     // Test all 9 DualTrits values
     struct TestCase {
@@ -345,6 +349,7 @@ TEST(DualTritsPrecision, AllValuesMPrealConsistency) {
             << "Failed for " << tc.description;
     }
 }
+#endif
 
 // =============================
 // Precision Loss Tests
@@ -371,6 +376,7 @@ TEST(DualTritsPrecision, FloatVsDoubleOneThirdPrecision) {
     std::cout << "  Precision improvement: " << (float_error / double_error) << "x" << std::endl;
 }
 
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, MPrealExactRepresentation) {
     DualTrits dt(2, 1);  // 1/3
     
@@ -386,6 +392,7 @@ TEST(DualTritsPrecision, MPrealExactRepresentation) {
     mpfr::mpreal three_times = result * mpfr::mpreal(3);
     EXPECT_EQ(three_times, mpfr::mpreal(1));
 }
+#endif
 
 // =============================
 // Round-trip Conversion Tests
@@ -429,6 +436,7 @@ TEST(DualTritsPrecision, DoubleStringRoundTrip) {
     }
 }
 
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, MPrealStringRoundTrip) {
     std::vector<DualTrits> test_values = {
         DualTrits(0, 0),  // 0
@@ -447,11 +455,13 @@ TEST(DualTritsPrecision, MPrealStringRoundTrip) {
             << " dir=" << (int)dt.getDirection();
     }
 }
+#endif
 
 // =============================
 // Numerical Stability Tests
 // =============================
 
+#ifdef USE_MPFR
 TEST(DualTritsPrecision, ZeroHandling) {
     DualTrits dt(0, 0);  // 0
     
@@ -504,3 +514,4 @@ TEST(DualTritsPrecision, SignPreservation) {
         }
     }
 }
+#endif

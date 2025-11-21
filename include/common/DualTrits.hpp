@@ -14,7 +14,9 @@
 #include <bitset>
 #include <stdexcept>
 
+#ifdef USE_MPFR
 #include <mpreal.h>
+#endif
 
 class DualTrits {
 public:
@@ -59,11 +61,15 @@ public:
 
     float toFloat() const noexcept;
     double toDouble() const noexcept;
+#ifdef USE_MPFR
     mpfr::mpreal toMPreal() const noexcept;
+#endif
 
     std::string toFloatString() const;
     std::string toDoubleString() const;
+#ifdef USE_MPFR
     std::string toMPrealString() const;
+#endif
 
     DualTrits operator+(const DualTrits& other) const;
     DualTrits operator-(const DualTrits& other) const;

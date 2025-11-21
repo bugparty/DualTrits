@@ -14,15 +14,34 @@ else()
     set(ENABLE_CUDA OFF)
     message(STATUS "CUDA not found, building CPU-only version")
 endif()
-
-find_package(GMP REQUIRED)
-find_package(MPFR 2.3.0 REQUIRED)
-find_package(MPFRCPP 2.7.0 REQUIRED)
 set(CMAKE_CXX_STANDARD 20)
+
+# Option to enable/disable MPFR/GMP support. When OFF, project will skip
+# finding GMP/MPFR/MPFRCPP and will not define `USE_MPFR`.
+option(USE_MPFR "Enable MPFR/GMP support" ON)
+if(USE_MPFR)
+        message(STATUS "Building with GMP/MPFR/MPFRCPP support (USE_MPFR=ON)")
+        find_package(GMP REQUIRED)
+        find_package(MPFR 2.3.0 REQUIRED)
+        find_package(MPFRCPP 2.7.0 REQUIRED)
+        add_compile_definitions(USE_MPFR)
+else()
+        message(STATUS "Building without GMP/MPFR/MPFRCPP support (USE_MPFR=OFF)")
+        # Ensure the variables referenced later exist as empty values so
+        # existing target_link_libraries calls remain valid.
+        set(GMP_LIBRARIES "")
+        set(MPFR_LIBRARIES "")
+        set(MPFRCPP_LIBRARIES "")
+        set(GMP_INCLUDES "")
+        set(MPFR_INCLUDES "")
+        set(MPFRCPP_INCLUDES "")
+endif()
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
+if(USE_MPFR)
+        include_directories(${GMP_INCLUDES} ${MPFR_INCLUDES} ${MPFRCPP_INCLUDES})
+endif()
 
 if(ENABLE_CUDA)
     include_directories(${CMAKE_SOURCE_DIR}/include/cuda)

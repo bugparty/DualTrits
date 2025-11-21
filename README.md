@@ -14,7 +14,7 @@ cmake -B build
 cmake --build build
 
 # Release build (recommended for benchmarks)
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MPFR=ON
 cmake --build build
 ```
 
