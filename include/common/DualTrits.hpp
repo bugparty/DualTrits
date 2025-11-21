@@ -63,10 +63,12 @@ public:
     */
     constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
     // Accessors for testing and inspection
+    __host__ __device__
     [[nodiscard]] constexpr int8_t getExponent() const noexcept { return (storage >> 2) & 0b11; }
     constexpr void setExponent(int8_t e) noexcept {
         storage = ( storage & 0b11 ) | ( (e & 0b11) << 2 );
     }
+    __host__ __device__
     [[nodiscard]] constexpr int8_t getDirection() const noexcept { return storage & 0b11; }
     constexpr void setDirection(int8_t d) noexcept {
         storage = ( storage & 0b1100 ) | ( d & 0b11 );
