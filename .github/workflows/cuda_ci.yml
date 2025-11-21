@@ -1,0 +1,43 @@
+name: CUDA CI
+
+on:
+  push:
+    branches: ["main", "master", "features/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cuda-ci:
+    name: CUDA Build & Test
+    runs-on: [self-hosted, cuda]
+    environment: dualtrit
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check CUDA installation
+        run: |
+          echo "Checking CUDA installation..."
+          nvcc --version
+          nvidia-smi
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmpfr-dev libmpfrc++-dev libgmp-dev
+
+      - name: Configure (Release)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build project and CUDA tests
+        run: cmake --build build --config Release --target project_float cuda_packing_tests
+
+      - name: Run CUDA tests
+        run: ctest --test-dir build --output-on-failure -R CudaPack
+
+      - name: Display GPU info
+        if: always()
+        run: |
+          echo "GPU Information:"
+          nvidia-smi --query-gpu=name,driver_version,memory.total,memory.free --format=csv
