@@ -38,15 +38,6 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
 // Device function: unpack UInt into Count dual-trits
 template <std::size_t Count, class UInt>
 __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) noexcept {
-
-    constexpr auto pow_base = [](size_t exponent) constexpr {
-        UInt result = 1;
-        for (size_t loops = 0; loops < exponent; loops++) {
-            result *= DualTrits::BASE;
-        }
-        return result;
-    };
-
     for (std::size_t i = 0; i < Count; ++i) {
         auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
