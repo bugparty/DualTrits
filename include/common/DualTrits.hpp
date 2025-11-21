@@ -28,8 +28,9 @@
 
 #endif
 
-#ifndef __global__
-#define __global__
+#ifndef __device__
+#define __host__
+#define __device__
 #endif
 
 class DualTrits {
@@ -123,7 +124,7 @@ public:
     std::bitset<4> asBits() const noexcept;
     unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
-    __global__ unsigned int asRawPackedBits() const noexcept;
+    __host__ __device__ unsigned int asRawPackedBits() const noexcept;
 
     // template <std::size_t Count, class UInt>
     // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
