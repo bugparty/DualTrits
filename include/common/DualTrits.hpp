@@ -28,6 +28,10 @@
 
 #endif
 
+#ifndef __global__
+#define __global__
+#endif
+
 class DualTrits {
 public:
     typedef int8_t wide_t;
@@ -119,7 +123,7 @@ public:
     std::bitset<4> asBits() const noexcept;
     unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
-    unsigned int asRawPackedBits() const noexcept;
+    __global__ unsigned int asRawPackedBits() const noexcept;
 
     // template <std::size_t Count, class UInt>
     // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);

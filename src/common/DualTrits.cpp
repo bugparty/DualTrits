@@ -560,7 +560,7 @@ std::bitset<4> DualTrits::asPackedBits() const noexcept {
     return std::bitset<4>(3 * exp + dir);
 }
 
-unsigned int DualTrits::asRawPackedBits() const noexcept {
+__global__ unsigned int DualTrits::asRawPackedBits() const noexcept {
     auto exp = getExponent();
     auto dir = getDirection();
     return 3 * exp + dir;
