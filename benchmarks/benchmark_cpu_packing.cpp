@@ -25,7 +25,7 @@ static void BM_Pack5_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         uint64_t sink = 0;
-        auto packed = pack5(inputs.data(), N * 5);
+        auto packed = batch_pack5(inputs.data(), N * 5);
         benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
@@ -49,7 +49,7 @@ static void BM_Unpack5_Batch(benchmark::State& state) {
     for (int i = 0; i < N * 5; ++i) {
         unpacked_inputs[i] = randomDualTrits();
     }
-    packed_inputs = pack5(unpacked_inputs.data(), N * 5);
+    packed_inputs = batch_pack5(unpacked_inputs.data(), N * 5);
 
     for (auto _ : state) {
         unpack5(packed_inputs.data(), outputs.data(), N);
@@ -76,7 +76,7 @@ static void BM_Pack10_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         uint64_t sink = 0;
-        auto packed = pack10(inputs.data(), N * 10);
+        auto packed = batch_pack10(inputs.data(), N * 10);
         benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
@@ -100,7 +100,7 @@ static void BM_Unpack10_Batch(benchmark::State& state) {
     for (int i = 0; i < N * 10; ++i) {
         unpacked_inputs[i] = randomDualTrits();
     }
-    packed_inputs = pack10(unpacked_inputs.data(), N * 10);
+    packed_inputs = batch_pack10(unpacked_inputs.data(), N * 10);
 
     for (auto _ : state) {
         unpack10(packed_inputs.data(), outputs.data(), N);
@@ -127,7 +127,7 @@ static void BM_Pack20_Batch(benchmark::State& state) {
 
     for (auto _ : state) {
         uint64_t sink = 0;
-        auto packed = pack20(inputs.data(), N * 20);
+        auto packed = batch_pack20(inputs.data(), N * 20);
         benchmark::DoNotOptimize(packed.data());
         benchmark::ClobberMemory();
     }
@@ -151,7 +151,7 @@ static void BM_Unpack20_Batch(benchmark::State& state) {
     for (int i = 0; i < N * 20; ++i) {
         unpacked_inputs[i] = randomDualTrits();
     }
-    packed_inputs = pack20(unpacked_inputs.data(), N * 20);
+    packed_inputs = batch_pack20(unpacked_inputs.data(), N * 20);
 
     for (auto _ : state) {
         unpack20(packed_inputs.data(), outputs.data(), N);
@@ -179,7 +179,7 @@ static void BM_RoundTrip5_Batch(benchmark::State& state) {
         inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        auto packed = pack5(inputs.data(), N * 5);
+        auto packed = batch_pack5(inputs.data(), N * 5);
         unpack5(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
@@ -204,7 +204,7 @@ static void BM_RoundTrip10_Batch(benchmark::State& state) {
         inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        auto packed = pack10(inputs.data(), N * 10);
+        auto packed = batch_pack10(inputs.data(), N * 10);
         unpack10(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();
@@ -229,7 +229,7 @@ static void BM_RoundTrip20_Batch(benchmark::State& state) {
         inputs[i] = randomDualTrits();
 
     for (auto _ : state) {
-        auto packed = pack20(inputs.data(), N * 20);
+        auto packed = batch_pack20(inputs.data(), N * 20);
         unpack20(packed.data(), outputs.data(), N);
         benchmark::DoNotOptimize(outputs.data());
         benchmark::ClobberMemory();

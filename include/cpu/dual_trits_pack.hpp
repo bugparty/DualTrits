@@ -137,38 +137,38 @@ void unpack_dual_trits(UInt* packed, DualTrits* out, size_t n) noexcept {
 constexpr std::uint16_t pack5(DualTrits const dual_trits[]) {
     return pack_dual_trits<5, std::uint16_t>(dual_trits);
 }
-std::vector<std::uint16_t> pack5(DualTrits const dual_trits[], size_t n) {
+std::vector<std::uint16_t> batch_pack5(DualTrits const dual_trits[], size_t n) {
     return pack_dual_trits<5, std::uint16_t>(dual_trits, n);
 }
 constexpr std::uint32_t pack10(DualTrits const dual_trits[]) {
     return pack_dual_trits<10, std::uint32_t>(dual_trits);
 }
-std::vector<std::uint32_t> pack10(DualTrits const dual_trits[], size_t n) {
+std::vector<std::uint32_t> batch_pack10(DualTrits const dual_trits[], size_t n) {
     return pack_dual_trits<10, std::uint32_t>(dual_trits, n);
 }
 constexpr std::uint64_t pack20(DualTrits const dual_trits[]) {
     return pack_dual_trits<20, std::uint64_t>(dual_trits);
 }
-std::vector<std::uint64_t> pack20(DualTrits const dual_trits[], size_t n) {
+std::vector<std::uint64_t> batch_pack20(DualTrits const dual_trits[], size_t n) {
     return pack_dual_trits<20, std::uint64_t>(dual_trits, n);
 }
 
 void unpack5(std::uint16_t packed, DualTrits* out) {
     unpack_dual_trits<5, std::uint16_t>(packed, out);
 }
-void unpack5(std::uint16_t* packed, DualTrits* out, size_t n) {
+void batch_unpack5(std::uint16_t* packed, DualTrits* out, size_t n) {
     unpack_dual_trits<5, std::uint16_t>(packed, out, n);
 }
 void unpack10(std::uint32_t packed, DualTrits* out) {
     unpack_dual_trits<10, std::uint32_t>(packed, out);
 }
-void unpack10(std::uint32_t* packed, DualTrits* out, size_t n) {
+void batch_unpack10(std::uint32_t* packed, DualTrits* out, size_t n) {
     unpack_dual_trits<10, std::uint32_t>(packed, out, n);
 }
 void unpack20(std::uint64_t packed, DualTrits* out) {
     unpack_dual_trits<20, std::uint64_t>(packed, out);
 }
-void unpack20(std::uint64_t* packed, DualTrits* out, size_t n) {
+void batch_unpack20(std::uint64_t* packed, DualTrits* out, size_t n) {
     unpack_dual_trits<20, std::uint64_t>(packed, out, n);
 }
 
