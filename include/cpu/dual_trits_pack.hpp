@@ -10,6 +10,21 @@
 #include <type_traits>
 #include <vector>
 
+namespace details {
+
+template <std::size_t Count, class UInt>
+constexpr bool fits() {
+    constexpr UInt UMAX = std::numeric_limits<UInt>::max();
+    UInt mul = 1;
+    for (std::size_t i = 0; i < 2 * Count; ++i) {
+        if (mul > UMAX / DualTrits::BASE) return false;
+        mul *= DualTrits::BASE;
+    }
+    return true;
+}
+
+}
+
 
 // Simple constexpr integer power
 constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
@@ -102,15 +117,7 @@ void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned integer type.");
 
     // compile-time container type capacity test
-    constexpr UInt UMAX = std::numeric_limits<UInt>::max();
-    constexpr bool fits = []() constexpr {
-        UInt mul = 1;
-        for (std::size_t i = 0; i < 2 * Count; ++i) {
-            if (mul > UMAX / DualTrits::BASE) return false;
-            mul *= DualTrits::BASE;
-        }
-        return true;
-    }();
+    constexpr bool fits = details::fits<Count, UInt>();
     static_assert(fits, "UInt is not wide enough for Count dual-trits (2*Count base-3 digits).");
 
     for (std::size_t i = 0; i < Count; ++i) {

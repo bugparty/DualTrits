@@ -123,7 +123,7 @@ gtest_discover_tests(precision_tests)
 
 if(ENABLE_CUDA)
     add_executable(cuda_packing_tests
-            tests/test_packing_cuda.cpp
+            tests/test_packing_cuda.cu
             src/common/DualTrits.cpp
             src/cpu/dual_trits_pack.cpp
             src/cuda/dual_trits_pack.cu)
