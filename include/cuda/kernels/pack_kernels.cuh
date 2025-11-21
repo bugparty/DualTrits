@@ -17,20 +17,12 @@
 template <std::size_t Count, class UInt>
 __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     UInt packed = 0;
-
-    constexpr auto pow_base = [](size_t exponent) constexpr {
-        UInt result = 1;
-        for (size_t loops = 0; loops < exponent; loops++) {
-            result *= DualTrits::BASE;
-        }
-        return result;
-    };
     
     // Encoding order: direction first, then exponent
     UInt exponent = 1;
     for (std::size_t i = 0; i < Count; ++i) {
         packed += exponent * dual_trits[Count - 1 - i].asRawPackedBits();
-        exponent *= pow_base(2);
+        exponent *= DualTrits::BASE * DualTrits::BASE;
     }
     return packed;
 }
