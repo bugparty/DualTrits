@@ -61,6 +61,7 @@ public:
     DualTrits(2,1) = 1/3
     DualTrits(2,2) = -1/3
     */
+    __host__ __device__
     constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
     // Accessors for testing and inspection
     __host__ __device__
