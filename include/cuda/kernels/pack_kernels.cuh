@@ -17,17 +17,12 @@
 template <std::size_t Count, class UInt>
 __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     UInt packed = 0;
-    UInt multiplier = 1;
     
     // Encoding order: direction first, then exponent
+    UInt exponent = 1;
     for (std::size_t i = 0; i < Count; ++i) {
-        const auto& t = dual_trits[i];
-        
-        packed += static_cast<UInt>(t.getDirection()) * multiplier;
-        multiplier *= DualTrits::BASE;
-        
-        packed += static_cast<UInt>(t.getExponent()) * multiplier;
-        multiplier *= DualTrits::BASE;
+        packed += exponent * dual_trits[Count - 1 - i].asRawPackedBits();
+        exponent *= DualTrits::BASE * DualTrits::BASE;
     }
     return packed;
 }
@@ -40,11 +35,12 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
         packed /= DualTrits::BASE;
         auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
-        
-        out[i].setDirection(dir);
-        out[i].setExponent(exp);
+
+        out[Count - 1 - i].setDirection(dir);
+        out[Count - 1 - i].setExponent(exp);
     }
 }
+
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t Count, class UInt>
 __global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {

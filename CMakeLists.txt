@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.26)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 project(project_float LANGUAGES CXX)
@@ -123,7 +123,7 @@ gtest_discover_tests(precision_tests)
 
 if(ENABLE_CUDA)
     add_executable(cuda_packing_tests
-            tests/test_packing_cuda.cpp
+            tests/test_packing_cuda.cu
             src/common/DualTrits.cpp
             src/cpu/dual_trits_pack.cpp
             src/cuda/dual_trits_pack.cu)

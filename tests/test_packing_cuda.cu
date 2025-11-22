@@ -1,7 +1,7 @@
 #include <array>
 #include <vector>
 #include <gtest/gtest.h>
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
 
 #include "common/DualTrits.hpp"
 #include "cpu/dual_trits_pack.hpp"

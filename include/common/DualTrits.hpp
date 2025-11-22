@@ -15,7 +15,22 @@
 #include <stdexcept>
 
 #ifdef USE_MPFR
+
+#if __has_include(<mpreal.h>)
+
 #include <mpreal.h>
+
+#else
+
+#include <3rdparty/mpreal.h>
+
+#endif
+
+#endif
+
+#ifndef __device__
+#define __host__
+#define __device__
 #endif
 
 class DualTrits {
@@ -46,12 +61,15 @@ public:
     DualTrits(2,1) = 1/3
     DualTrits(2,2) = -1/3
     */
+    __host__ __device__
     constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
     // Accessors for testing and inspection
+    __host__ __device__
     [[nodiscard]] constexpr int8_t getExponent() const noexcept { return (storage >> 2) & 0b11; }
     constexpr void setExponent(int8_t e) noexcept {
         storage = ( storage & 0b11 ) | ( (e & 0b11) << 2 );
     }
+    __host__ __device__
     [[nodiscard]] constexpr int8_t getDirection() const noexcept { return storage & 0b11; }
     constexpr void setDirection(int8_t d) noexcept {
         storage = ( storage & 0b1100 ) | ( d & 0b11 );
@@ -109,7 +127,11 @@ public:
     std::bitset<4> asBits() const noexcept;
     unsigned int asRawBits() const noexcept;
     std::bitset<4> asPackedBits() const noexcept;
-    unsigned int asRawPackedBits() const noexcept;
+    __host__ __device__ unsigned int asRawPackedBits() const noexcept {
+        auto exp = getExponent();
+        auto dir = getDirection();
+        return 3 * exp + dir;
+    }
 
     // template <std::size_t Count, class UInt>
     // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
