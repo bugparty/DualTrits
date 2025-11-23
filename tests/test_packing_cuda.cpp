@@ -17,13 +17,13 @@ void SkipIfNoCudaDevice() {
     }
 }
 
-template <std::size_t Count>
-using TritBlock = std::array<DualTrits, Count>;
+template <std::size_t TritsPerPack>
+using TritBlock = std::array<DualTrits, TritsPerPack>;
 
-template <std::size_t Count>
-std::vector<DualTrits> Flatten(const std::vector<TritBlock<Count>>& blocks) {
+template <std::size_t TritsPerPack>
+std::vector<DualTrits> Flatten(const std::vector<TritBlock<TritsPerPack>>& blocks) {
     std::vector<DualTrits> flat;
-    flat.reserve(blocks.size() * Count);
+    flat.reserve(blocks.size() * TritsPerPack);
     for (auto const& block : blocks) {
         flat.insert(flat.end(), block.begin(), block.end());
     }
@@ -34,11 +34,11 @@ DualTrits MakeDualTrit(int exp, int dir) {
     return DualTrits(exp % DualTrits::BASE, static_cast<DualTrits::wide_t>(dir % DualTrits::BASE));
 }
 
-template <std::size_t Count>
-TritBlock<Count> BlockFromSeed(std::uint64_t seed) {
-    TritBlock<Count> block{};
+template <std::size_t TritsPerPack>
+TritBlock<TritsPerPack> BlockFromSeed(std::uint64_t seed) {
+    TritBlock<TritsPerPack> block{};
     std::uint64_t idx = seed;
-    for (std::size_t i = 0; i < Count; ++i) {
+    for (std::size_t i = 0; i < TritsPerPack; ++i) {
         auto dir = static_cast<int>(idx % DualTrits::BASE);
         idx /= DualTrits::BASE;
         auto exp = static_cast<int>(idx % DualTrits::BASE);
@@ -48,26 +48,26 @@ TritBlock<Count> BlockFromSeed(std::uint64_t seed) {
     return block;
 }
 
-template <std::size_t Count, class UInt>
-void ExpectRoundTrip(const std::vector<TritBlock<Count>>& blocks,
+template <std::size_t TritsPerPack, class UInt>
+void ExpectRoundTrip(const std::vector<TritBlock<TritsPerPack>>& blocks,
                      UInt (*cpu_pack)(DualTrits const*),
                      void (*cpu_unpack)(UInt, DualTrits*)) {
     const auto num_blocks = static_cast<int>(blocks.size());
     auto flat = Flatten(blocks);
 
     std::vector<UInt> packed(num_blocks);
-    pack_dual_trits_batch_cuda<Count, UInt>(flat.data(), packed.data(), num_blocks);
+    pack_dual_trits_batch_cuda<TritsPerPack, UInt>(flat.data(), packed.data(), num_blocks);
 
     for (std::size_t i = 0; i < blocks.size(); ++i) {
         EXPECT_EQ(packed[i], cpu_pack(blocks[i].data())) << "Mismatch in pack result, block " << i;
     }
 
-    std::vector<DualTrits> unpacked(blocks.size() * Count);
-    unpack_dual_trits_batch_cuda<Count, UInt>(packed.data(), unpacked.data(), num_blocks);
+    std::vector<DualTrits> unpacked(blocks.size() * TritsPerPack);
+    unpack_dual_trits_batch_cuda<TritsPerPack, UInt>(packed.data(), unpacked.data(), num_blocks);
 
     for (std::size_t i = 0; i < blocks.size(); ++i) {
-        auto* out = unpacked.data() + (i * Count);
-        for (std::size_t j = 0; j < Count; ++j) {
+        auto* out = unpacked.data() + (i * TritsPerPack);
+        for (std::size_t j = 0; j < TritsPerPack; ++j) {
             EXPECT_EQ(blocks[i][j].getDirection(), out[j].getDirection()) << "block=" << i << " element=" << j;
             EXPECT_EQ(blocks[i][j].getExponent(),  out[j].getExponent())  << "block=" << i << " element=" << j;
         }

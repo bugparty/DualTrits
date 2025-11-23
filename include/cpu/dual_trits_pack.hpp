@@ -16,22 +16,22 @@ constexpr unsigned long long ipow_u(unsigned base, unsigned exp) {
     return r;
 }
 
-// Generic packer: pack `Count` DualTrits into unsigned integer type `UInt`
-template <std::size_t Count, class UInt>
+// Generic packer: pack `TritsPerPack` DualTrits into unsigned integer type `UInt`
+template <std::size_t TritsPerPack, class UInt>
 constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned type");
 
-    // Required representable range: BASE^(2*Count) - 1
-    constexpr unsigned digits = 2 * Count;
+    // Required representable range: BASE^(2*TritsPerPack) - 1
+    constexpr unsigned digits = 2 * TritsPerPack;
     constexpr unsigned long long max_needed = ipow_u(DualTrits::BASE, digits) - 1ULL;
     static_assert(max_needed <= std::numeric_limits<UInt>::max(),
-                  "UInt does not have enough bits for Count dual-trits");
+                  "UInt does not have enough bits for TritsPerPack dual-trits");
 
     UInt packed = 0;
     UInt multiplier = 1;
 
     // Encoding order: direction first, then exponent
-    for (std::size_t i = 0; i < Count; ++i) {
+    for (std::size_t i = 0; i < TritsPerPack; ++i) {
         const DualTrits& t = dual_trits[i];
 
         packed += static_cast<UInt>(t.getDirection()) * multiplier;
@@ -44,22 +44,22 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
 }
 
 
-// Optional: automatically select the smallest uint type that can hold Count dual-trits
-template <std::size_t Count>
+// Optional: automatically select the smallest uint type that can hold TritsPerPack dual-trits
+template <std::size_t TritsPerPack>
 using smallest_uint_for_dualtrits_t =
-    std::conditional_t<(ipow_u(DualTrits::BASE, 2*Count) - 1ULL) <= std::numeric_limits<std::uint16_t>::max(), std::uint16_t,
-    std::conditional_t<(ipow_u(DualTrits::BASE, 2*Count) - 1ULL) <= std::numeric_limits<std::uint32_t>::max(), std::uint32_t,
+    std::conditional_t<(ipow_u(DualTrits::BASE, 2*TritsPerPack) - 1ULL) <= std::numeric_limits<std::uint16_t>::max(), std::uint16_t,
+    std::conditional_t<(ipow_u(DualTrits::BASE, 2*TritsPerPack) - 1ULL) <= std::numeric_limits<std::uint32_t>::max(), std::uint32_t,
     std::uint64_t>>;
 
-// Auto-packing API: pack_auto<Count>(ptr)
-template <std::size_t Count>
-constexpr smallest_uint_for_dualtrits_t<Count>
+// Auto-packing API: pack_auto<TritsPerPack>(ptr)
+template <std::size_t TritsPerPack>
+constexpr smallest_uint_for_dualtrits_t<TritsPerPack>
 pack_auto(DualTrits const* dual_trits) {
-    using U = smallest_uint_for_dualtrits_t<Count>;
-    return pack_dual_trits<Count, U>(dual_trits);
+    using U = smallest_uint_for_dualtrits_t<TritsPerPack>;
+    return pack_dual_trits<TritsPerPack, U>(dual_trits);
 }
 
-template <std::size_t Count, class UInt>
+template <std::size_t TritsPerPack, class UInt>
 constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     static_assert(std::is_unsigned_v<UInt>, "UInt must be an unsigned integer type.");
 
@@ -67,15 +67,15 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
     constexpr UInt UMAX = std::numeric_limits<UInt>::max();
     constexpr bool fits = []() constexpr {
         UInt mul = 1;
-        for (std::size_t i = 0; i < 2 * Count; ++i) {
+        for (std::size_t i = 0; i < 2 * TritsPerPack; ++i) {
             if (mul > UMAX / DualTrits::BASE) return false;
             mul *= DualTrits::BASE;
         }
         return true;
     }();
-    static_assert(fits, "UInt is not wide enough for Count dual-trits (2*Count base-3 digits).");
+    static_assert(fits, "UInt is not wide enough for TritsPerPack dual-trits (2*TritsPerPack base-3 digits).");
 
-    for (std::size_t i = 0; i < Count; ++i) {
+    for (std::size_t i = 0; i < TritsPerPack; ++i) {
         auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
         auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
