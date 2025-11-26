@@ -66,10 +66,10 @@ void ExpectRoundTrip(const std::vector<TritBlock<TritsPerPack>>& blocks,
     unpack_dual_trits_batch_cuda<TritsPerPack, UInt>(packed.data(), unpacked.data(), num_blocks);
 
     for (std::size_t i = 0; i < blocks.size(); ++i) {
-        auto* out = unpacked.data() + (i * TritsPerPack);
+        auto* actual = unpacked.data() + (i * TritsPerPack);
         for (std::size_t j = 0; j < TritsPerPack; ++j) {
-            EXPECT_EQ(blocks[i][j].getDirection(), out[j].getDirection()) << "block=" << i << " element=" << j;
-            EXPECT_EQ(blocks[i][j].getExponent(),  out[j].getExponent())  << "block=" << i << " element=" << j;
+            EXPECT_EQ(blocks[i][j].getDirection(), actual[j].getDirection()) << "block=" << i << " element=" << j;
+            EXPECT_EQ(blocks[i][j].getExponent(),  actual[j].getExponent())  << "block=" << i << " element=" << j;
         }
     }
 }

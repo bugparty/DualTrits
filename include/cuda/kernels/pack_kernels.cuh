@@ -36,6 +36,7 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
         out[i].setExponent(exp);
     }
 }
+
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t TritsPerPack, class UInt>
 __global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {
@@ -55,5 +56,13 @@ __global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
         unpack_dual_trits_cuda<TritsPerPack, UInt>(d_input[idx], &d_output[idx * TritsPerPack]);
     }
 }
+
+// Helper function to compute powers of BASE (defined in dual_trits_pack.cu)
+template <typename UInt>
+__device__ constexpr UInt pow_of_base(int exp);
+
+// Optimized warp-cooperative unpack kernel declaration (defined in dual_trits_pack.cu)
+template <std::size_t TritsPerPack, class UInt>
+__global__ void unpack_kernel_warp(UInt const* d_input, DualTrits* d_output, int n);
 
 #endif // PROJECT_FLOAT_CUDA_KERNELS_H
