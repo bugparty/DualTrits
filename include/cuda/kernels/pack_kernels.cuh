@@ -36,6 +36,7 @@ __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) no
         out[i].setExponent(exp);
     }
 }
+
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t TritsPerPack, class UInt>
 __global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {
@@ -55,5 +56,27 @@ __global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
         unpack_dual_trits_cuda<TritsPerPack, UInt>(d_input[idx], &d_output[idx * TritsPerPack]);
     }
 }
+
+// Specialized kernel for unpacking 5 dual-trits from uint16_t
+template <>
+__device__ constexpr void unpack_dual_trits_cuda<10, std::uint32_t>(std::uint32_t packed, DualTrits* out) noexcept {
+    using UInt = std::uint32_t;
+    const std::size_t TritsPerPack = 10;
+    for (std::size_t i = 0; i < TritsPerPack; ++i) {
+        auto dir = static_cast<std::uint32_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        auto exp = static_cast<std::uint32_t>(packed % DualTrits::BASE);
+        packed /= DualTrits::BASE;
+        
+        out[i].setDirection(dir);
+        out[i].setExponent(exp);
+    }
+}
+// Helper function declaration for specialized kernel (defined in dual_trits_pack.cu)
+__device__ constexpr int pow_of(int exp);
+
+// Specialized kernel declaration (definition in dual_trits_pack.cu to avoid multiple definition)
+template <>
+__global__ void unpack_kernel<10, std::uint32_t>(std::uint32_t const* d_input, DualTrits* d_output, int n);
 
 #endif // PROJECT_FLOAT_CUDA_KERNELS_H
