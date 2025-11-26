@@ -57,26 +57,12 @@ __global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
     }
 }
 
-// Specialized kernel for unpacking 5 dual-trits from uint16_t
-template <>
-__device__ constexpr void unpack_dual_trits_cuda<10, std::uint32_t>(std::uint32_t packed, DualTrits* out) noexcept {
-    using UInt = std::uint32_t;
-    const std::size_t TritsPerPack = 10;
-    for (std::size_t i = 0; i < TritsPerPack; ++i) {
-        auto dir = static_cast<std::uint32_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        auto exp = static_cast<std::uint32_t>(packed % DualTrits::BASE);
-        packed /= DualTrits::BASE;
-        
-        out[i].setDirection(dir);
-        out[i].setExponent(exp);
-    }
-}
-// Helper function declaration for specialized kernel (defined in dual_trits_pack.cu)
-__device__ constexpr int pow_of(int exp);
+// Helper function to compute powers of BASE (defined in dual_trits_pack.cu)
+template <typename UInt>
+__device__ constexpr UInt pow_of_base(int exp);
 
-// Specialized kernel declaration (definition in dual_trits_pack.cu to avoid multiple definition)
-template <>
-__global__ void unpack_kernel<10, std::uint32_t>(std::uint32_t const* d_input, DualTrits* d_output, int n);
+// Optimized warp-cooperative unpack kernel declaration (defined in dual_trits_pack.cu)
+template <std::size_t TritsPerPack, class UInt>
+__global__ void unpack_kernel_warp(UInt const* d_input, DualTrits* d_output, int n);
 
 #endif // PROJECT_FLOAT_CUDA_KERNELS_H
