@@ -46,7 +46,7 @@ public:
     DualTrits(2,1) = 1/3
     DualTrits(2,2) = -1/3
     */
-    constexpr DualTrits(int e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
+    constexpr DualTrits(wide_t e = 0, wide_t d = 0) noexcept : storage((e << 2) | (d & 0b11)) {}
     // Accessors for testing and inspection
     [[nodiscard]] constexpr int8_t getExponent() const noexcept { return (storage >> 2) & 0b11; }
     constexpr void setExponent(int8_t e) noexcept {

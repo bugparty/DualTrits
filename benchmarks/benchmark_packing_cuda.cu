@@ -115,9 +115,9 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
     // Copy input to device
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
     
-    // Setup grid and block dimensions
-    dim3 block(256);
-    dim3 grid((N + block.x - 1) / block.x);
+    // Setup grid and block dimensions for warp-cooperative kernel
+    dim3 block(32);
+    dim3 grid(N);
     
     // Setup CUDA events for timing
     cudaEvent_t start, stop;
@@ -125,7 +125,7 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
     cudaEventCreate(&stop);
     
     // Warmup
-    unpack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
+    unpack_kernel_warp<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
     cudaDeviceSynchronize();
     
     for (auto _ : state) {
@@ -133,7 +133,7 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
         state.ResumeTiming();
         
         cudaEventRecord(start);
-        unpack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
+        unpack_kernel_warp<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
@@ -245,14 +245,14 @@ static void BM_Unpack10_CUDA(benchmark::State& state) {
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint32_t), cudaMemcpyHostToDevice);
     
-    dim3 block(256);
-    dim3 grid((N + block.x - 1) / block.x);
+    dim3 block(32);
+    dim3 grid(N);
     
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     
-    unpack_kernel<COUNT, std::uint32_t><<<grid, block>>>(d_input, d_output, N);
+    unpack_kernel_warp<COUNT, std::uint32_t><<<grid, block>>>(d_input, d_output, N);
     cudaDeviceSynchronize();
     
     for (auto _ : state) {
@@ -260,7 +260,7 @@ static void BM_Unpack10_CUDA(benchmark::State& state) {
         state.ResumeTiming();
         
         cudaEventRecord(start);
-        unpack_kernel<COUNT, std::uint32_t><<<grid, block>>>(d_input, d_output, N);
+        unpack_kernel_warp<COUNT, std::uint32_t><<<grid, block>>>(d_input, d_output, N);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
@@ -372,14 +372,14 @@ static void BM_Unpack20_CUDA(benchmark::State& state) {
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint64_t), cudaMemcpyHostToDevice);
     
-    dim3 block(256);
-    dim3 grid((N + block.x - 1) / block.x);
+    dim3 block(32);
+    dim3 grid(N);
     
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     
-    unpack_kernel<COUNT, std::uint64_t><<<grid, block>>>(d_input, d_output, N);
+    unpack_kernel_warp<COUNT, std::uint64_t><<<grid, block>>>(d_input, d_output, N);
     cudaDeviceSynchronize();
     
     for (auto _ : state) {
@@ -387,7 +387,7 @@ static void BM_Unpack20_CUDA(benchmark::State& state) {
         state.ResumeTiming();
         
         cudaEventRecord(start);
-        unpack_kernel<COUNT, std::uint64_t><<<grid, block>>>(d_input, d_output, N);
+        unpack_kernel_warp<COUNT, std::uint64_t><<<grid, block>>>(d_input, d_output, N);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
@@ -442,8 +442,10 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
     cudaEventCreate(&stop);
     
     // Warmup
+    dim3 unpack_block(32);
+    dim3 unpack_grid(N);
     pack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_packed, N);
-    unpack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_packed, d_output, N);
+    unpack_kernel_warp<COUNT, std::uint16_t><<<unpack_grid, unpack_block>>>(d_packed, d_output, N);
     cudaDeviceSynchronize();
     
     for (auto _ : state) {
@@ -452,7 +454,7 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
         
         cudaEventRecord(start);
         pack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_packed, N);
-        unpack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_packed, d_output, N);
+        unpack_kernel_warp<COUNT, std::uint16_t><<<unpack_grid, unpack_block>>>(d_packed, d_output, N);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         

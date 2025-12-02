@@ -13,6 +13,12 @@
 template <std::size_t TritsPerPack, class UInt>
 void pack_dual_trits_batch_cuda(DualTrits const* h_input, UInt* h_output, int n);
 
+// Warp-cooperative unpack (optimized, uses warp shuffle)
 template <std::size_t TritsPerPack, class UInt>
 void unpack_dual_trits_batch_cuda(UInt const* h_input, DualTrits* h_output, int n);
+
+// Standard unpack (baseline, one thread per packed integer)
+template <std::size_t TritsPerPack, class UInt>
+void unpack_dual_trits_batch_cuda_standard(UInt const* h_input, DualTrits* h_output, int n);
+
 #endif //PROJECT_FLOAT_CUDA_PACKING_H
