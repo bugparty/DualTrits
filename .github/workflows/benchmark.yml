@@ -48,7 +48,7 @@ jobs:
           sudo mv mpreal.h /usr/local/include/
 
       - name: Configure CMake (Release)
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MPFR=ON
 
       - name: Build benchmarks
         run: cmake --build build --target packing_benchmarks --config Release

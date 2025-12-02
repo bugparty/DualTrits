@@ -22,7 +22,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "Building cuda benchmarks in Release mode..."
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MPFR=OFF
 cmake --build build --target packing_cuda_benchmarks
 
 echo ""
