@@ -8,6 +8,7 @@
 template <std::size_t TritsPerPack, class UInt>
 __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     UInt packed = 0;
+    UInt multiplier = 1;
     
     // Encoding order: direction first, then exponent
     for (std::size_t i = 0; i < TritsPerPack; ++i) {
