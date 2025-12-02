@@ -15,8 +15,7 @@
 #include <stdexcept>
 
 #include <mpreal.h>
-
-class DualTrits {
+ class DualTrits {
 public:
     typedef int8_t wide_t;
     typedef int16_t compute_t;

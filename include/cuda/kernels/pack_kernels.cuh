@@ -23,15 +23,16 @@ __device__ constexpr UInt pack_dual_trits_cuda(DualTrits const* dual_trits) {
     return packed;
 }
 
+
 // Device function: unpack UInt into TritsPerPack dual-trits
 template <std::size_t TritsPerPack, class UInt>
 __device__ constexpr void unpack_dual_trits_cuda(UInt packed, DualTrits* out) noexcept {
+    #pragma unroll
     for (std::size_t i = 0; i < TritsPerPack; ++i) {
-        auto dir = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        auto dir = static_cast<std::uint8_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
-        auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
+        auto exp = static_cast<std::uint8_t>(packed % DualTrits::BASE);
         packed /= DualTrits::BASE;
-        
         out[i].setDirection(dir);
         out[i].setExponent(exp);
     }
@@ -47,7 +48,7 @@ __global__ void pack_kernel(DualTrits const* d_input, UInt* d_output, int n) {
     }
 }
 
-// Kernel: unpack batch of packed integers
+// Standard unpack kernel: one thread per packed integer
 template <std::size_t TritsPerPack, class UInt>
 __global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -57,9 +58,9 @@ __global__ void unpack_kernel(UInt const* d_input, DualTrits* d_output, int n) {
     }
 }
 
-// Helper function to compute powers of BASE (defined in dual_trits_pack.cu)
+// Helper function to get precomputed power of BASE (defined in dual_trits_pack.cu)
 template <typename UInt>
-__device__ constexpr UInt pow_of_base(int exp);
+__device__ __forceinline__ UInt pow_of_base(int exp);
 
 // Optimized warp-cooperative unpack kernel declaration (defined in dual_trits_pack.cu)
 template <std::size_t TritsPerPack, class UInt>
