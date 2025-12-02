@@ -133,9 +133,9 @@ public:
         return 3 * exp + dir;
     }
 
-    // template <std::size_t Count, class UInt>
+    // template <std::size_t TritsPerPack, class UInt>
     // friend constexpr UInt pack_dual_trits(DualTrits const* dual_trits);
-    // template <std::size_t Count, class UInt>
+    // template <std::size_t TritsPerPack, class UInt>
     // friend constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept;
 
     // Non-member swap function

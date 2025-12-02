@@ -65,27 +65,28 @@ constexpr UInt pack_dual_trits(DualTrits const* dual_trits) {
     return packed;
 }
 
-template <std::size_t Count, class UInt>
+template <std::size_t TritsPerPack, class UInt>
 std::vector<UInt> batch_pack_dual_trits(DualTrits const dual_trits[], size_t n) {
-    size_t totalPacks = (n + Count - 1) / Count;
+    size_t totalPacks = (n + TritsPerPack - 1) / TritsPerPack;
     std::vector<UInt> packed(totalPacks);
 
-    size_t offset = n % Count;
+    size_t offset = n % TritsPerPack;
 
     #pragma omp parallel sections
     {
         #pragma omp section
         {
             if (offset != 0) {
-                DualTrits firstPack[5] = {DualTrits(0)};
+                std::vector<DualTrits> firstPackVector(TritsPerPack);
+                DualTrits* firstPack = firstPackVector.data();
                 size_t dualTritsIndex = 0;
-                for (size_t firstPackIndex = Count - offset; firstPackIndex < Count; firstPackIndex++) {
+                for (size_t firstPackIndex = TritsPerPack - offset; firstPackIndex < TritsPerPack; firstPackIndex++) {
                     firstPack[firstPackIndex] = dual_trits[dualTritsIndex];
                     dualTritsIndex++;
                 }
-                packed[0] = pack_dual_trits<Count, UInt>(firstPack);
+                packed[0] = pack_dual_trits<TritsPerPack, UInt>(firstPack);
             } else {
-                packed[0] = pack_dual_trits<Count, UInt>(dual_trits);
+                packed[0] = pack_dual_trits<TritsPerPack, UInt>(dual_trits);
             }
         }
 
@@ -93,7 +94,7 @@ std::vector<UInt> batch_pack_dual_trits(DualTrits const dual_trits[], size_t n) 
         {
             #pragma omp parallel for schedule(static, Count)
             for (size_t packIndex = 1; packIndex < totalPacks; packIndex++) {
-                packed[packIndex] = pack_dual_trits<Count, UInt>(offset + ((packIndex - 1) * Count) + dual_trits);
+                packed[packIndex] = pack_dual_trits<TritsPerPack, UInt>(offset + ((packIndex - 1) * TritsPerPack) + dual_trits);
             }
         }
     }
@@ -141,11 +142,11 @@ constexpr void unpack_dual_trits(UInt packed, DualTrits* out) noexcept {
 
 // unpack_dual_trits assumes that for n packed values, there will be n * Count
 // elements allocated for DualTrits in out.
-template <std::size_t Count, class UInt>
+template <std::size_t TritsPerPack, class UInt>
 void unpack_dual_trits(UInt* packed, DualTrits* out, size_t n) noexcept {
     #pragma omp parallel for schedule(static, Count)
     for (size_t i = 0; i < n; i++) {
-        unpack_dual_trits<Count, UInt>(packed[i], out + (Count * i));
+        unpack_dual_trits<TritsPerPack, UInt>(packed[i], out + (TritsPerPack * i));
     }
 }
 
