@@ -63,7 +63,7 @@ def plot_throughput(by_bench, labels, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for bench, sizes_dict in by_bench.items():
-        # 只考虑有数据的情况
+        # Only consider cases with data
         sizes = sorted(sizes_dict.keys())
         if not sizes:
             continue
