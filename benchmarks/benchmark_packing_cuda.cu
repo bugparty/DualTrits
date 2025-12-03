@@ -82,7 +82,7 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
     // Pack data first to get valid input
     std::vector<std::uint16_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint64_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<COUNT, std::uint16_t>(&h_temp[i * COUNT]);
     }
     std::vector<DualTrits> h_output(N * COUNT);
     
