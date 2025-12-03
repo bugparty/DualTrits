@@ -27,6 +27,14 @@ void pack_dual_trits_batch_cuda_device(
 );
 
 template <std::size_t TritsPerPack, class UInt>
+void unpack_dual_trits_batch_cuda_device(
+    UInt const* d_input,       // device memory
+    DualTrits* d_output,        // device memory
+    int n,
+    float* elapsed_ms = nullptr // if not null, returns kernel execution time
+);
+
+template <std::size_t TritsPerPack, class UInt>
 void unpack_dual_trits_stride_batch_cuda_device(
     UInt const* d_input,       // device memory
     DualTrits* d_output,        // device memory

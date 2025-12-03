@@ -186,6 +186,10 @@ template void pack_dual_trits_batch_cuda_device<5, std::uint16_t>(DualTrits cons
 template void pack_dual_trits_batch_cuda_device<10, std::uint32_t>(DualTrits const*, std::uint32_t*, int, float*);
 template void pack_dual_trits_batch_cuda_device<20, std::uint64_t>(DualTrits const*, std::uint64_t*, int, float*);
 
+template void unpack_dual_trits_batch_cuda_device<5, std::uint16_t>(std::uint16_t const*, DualTrits*, int, float*);
+template void unpack_dual_trits_batch_cuda_device<10, std::uint32_t>(std::uint32_t const*, DualTrits*, int, float*);
+template void unpack_dual_trits_batch_cuda_device<20, std::uint64_t>(std::uint64_t const*, DualTrits*, int, float*);
+
 template void unpack_dual_trits_stride_batch_cuda_device<5, std::uint16_t>(std::uint16_t const*, DualTrits*, int, float*);
 template void unpack_dual_trits_stride_batch_cuda_device<10, std::uint32_t>(std::uint32_t const*, DualTrits*, int, float*);
 template void unpack_dual_trits_stride_batch_cuda_device<20, std::uint64_t>(std::uint64_t const*, DualTrits*, int, float*);

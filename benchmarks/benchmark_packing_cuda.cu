@@ -96,6 +96,59 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
     
     // Warmup
+    unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, nullptr);
+    
+    for (auto _ : state) {
+        float ms = 0.f;
+        unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, &ms);
+        state.SetIterationTime(ms / 1000.0);
+    }
+    
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
+                           (sizeof(std::uint16_t) + COUNT * sizeof(DualTrits)));
+    
+    cudaFree(d_input);
+    cudaFree(d_output);
+}
+
+BENCHMARK(BM_Unpack5_CUDA)
+    ->UseManualTime()
+    ->Arg(1<<16)
+    ->Arg(1<<18)
+    ->Arg(1<<20)
+    ->Unit(benchmark::kMillisecond);
+
+// ============================================================================
+// Unpack5 Stride Kernel Benchmark (uint16_t)
+// ============================================================================
+static void BM_Unpack5_Stride_CUDA(benchmark::State& state) {
+    const int N = static_cast<int>(state.range(0));
+    constexpr int COUNT = 5;
+    
+    // Allocate and initialize host memory
+    std::vector<DualTrits> h_temp(N * COUNT);
+    for (int i = 0; i < N * COUNT; ++i) {
+        h_temp[i] = randomDualTrits();
+    }
+    
+    // Pack data first to get valid input
+    std::vector<std::uint16_t> h_input(N);
+    for (int i = 0; i < N; ++i) {
+        h_input[i] = pack_dual_trits<COUNT, std::uint16_t>(&h_temp[i * COUNT]);
+    }
+    std::vector<DualTrits> h_output(N * COUNT);
+    
+    // Allocate device memory
+    std::uint16_t* d_input{};
+    DualTrits* d_output{};
+    cudaMalloc(&d_input, N * sizeof(std::uint16_t));
+    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    
+    // Copy input to device
+    cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
+    
+    // Warmup
     unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
@@ -112,7 +165,7 @@ static void BM_Unpack5_CUDA(benchmark::State& state) {
     cudaFree(d_output);
 }
 
-BENCHMARK(BM_Unpack5_CUDA)
+BENCHMARK(BM_Unpack5_Stride_CUDA)
     ->UseManualTime()
     ->Arg(1<<16)
     ->Arg(1<<18)
@@ -186,6 +239,53 @@ static void BM_Unpack10_CUDA(benchmark::State& state) {
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint32_t), cudaMemcpyHostToDevice);
 
+    unpack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, nullptr);
+    
+    for (auto _ : state) {
+        float ms = 0.f;
+        unpack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, &ms);
+        state.SetIterationTime(ms / 1000.0);
+    }
+    
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
+                           (sizeof(std::uint32_t) + COUNT * sizeof(DualTrits)));
+    cudaFree(d_input);
+    cudaFree(d_output);
+}
+
+BENCHMARK(BM_Unpack10_CUDA)
+    ->UseManualTime()
+    ->Arg(1<<16)
+    ->Arg(1<<18)
+    ->Arg(1<<20)
+    ->Unit(benchmark::kMillisecond);
+
+// ============================================================================
+// Unpack10 Stride Kernel Benchmark (uint32_t)
+// ============================================================================
+static void BM_Unpack10_Stride_CUDA(benchmark::State& state) {
+    const int N = static_cast<int>(state.range(0));
+    constexpr int COUNT = 10;
+    
+    std::vector<DualTrits> h_temp(N * COUNT);
+    for (int i = 0; i < N * COUNT; ++i) {
+        h_temp[i] = randomDualTrits();
+    }
+    
+    std::vector<std::uint32_t> h_input(N);
+    for (int i = 0; i < N; ++i) {
+        h_input[i] = pack_dual_trits<COUNT, std::uint32_t>(&h_temp[i * COUNT]);
+    }
+    std::vector<DualTrits> h_output(N * COUNT);
+    
+    std::uint32_t* d_input{};
+    DualTrits* d_output{};
+    cudaMalloc(&d_input, N * sizeof(std::uint32_t));
+    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    
+    cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint32_t), cudaMemcpyHostToDevice);
+
     unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
@@ -201,7 +301,7 @@ static void BM_Unpack10_CUDA(benchmark::State& state) {
     cudaFree(d_output);
 }
 
-BENCHMARK(BM_Unpack10_CUDA)
+BENCHMARK(BM_Unpack10_Stride_CUDA)
     ->UseManualTime()
     ->Arg(1<<16)
     ->Arg(1<<18)
@@ -253,7 +353,7 @@ BENCHMARK(BM_Pack20_CUDA)
 // ============================================================================
 // Unpack20 Kernel Benchmark (uint64_t)
 // ============================================================================
-static void BM_Unpack20_CUDA(benchmark::State& state) {
+static void BM_Unpack20_Stride_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
     constexpr int COUNT = 20;
     
@@ -280,6 +380,53 @@ static void BM_Unpack20_CUDA(benchmark::State& state) {
     for (auto _ : state) {
         float ms = 0.f;
         unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, &ms);
+        state.SetIterationTime(ms / 1000.0);
+    }
+    
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
+                           (sizeof(std::uint64_t) + COUNT * sizeof(DualTrits)));
+    cudaFree(d_input);
+    cudaFree(d_output);
+}
+
+BENCHMARK(BM_Unpack20_Stride_CUDA)
+    ->UseManualTime()
+    ->Arg(1<<16)
+    ->Arg(1<<18)
+    ->Arg(1<<20)
+    ->Unit(benchmark::kMillisecond);
+
+// ============================================================================
+// Round-trip Benchmark (Pack + Unpack) for Pack5
+// ============================================================================
+static void BM_Unpack20_CUDA(benchmark::State& state) {
+    const int N = static_cast<int>(state.range(0));
+    constexpr int COUNT = 20;
+    
+    std::vector<DualTrits> h_temp(N * COUNT);
+    for (int i = 0; i < N * COUNT; ++i) {
+        h_temp[i] = randomDualTrits();
+    }
+    
+    std::vector<std::uint64_t> h_input(N);
+    for (int i = 0; i < N; ++i) {
+        h_input[i] = pack_dual_trits<COUNT, std::uint64_t>(&h_temp[i * COUNT]);
+    }
+    std::vector<DualTrits> h_output(N * COUNT);
+    
+    std::uint64_t* d_input{};
+    DualTrits* d_output{};
+    cudaMalloc(&d_input, N * sizeof(std::uint64_t));
+    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    
+    cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint64_t), cudaMemcpyHostToDevice);
+
+    unpack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, nullptr);
+    
+    for (auto _ : state) {
+        float ms = 0.f;
+        unpack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
@@ -320,7 +467,7 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
     
     // Warmup
     pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_packed, N, nullptr);
-    unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
+    unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
     
     for (auto _ : state) {
         cudaEvent_t start, stop;
@@ -329,7 +476,7 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
         
         cudaEventRecord(start);
         pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_packed, N, nullptr);
-        unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
+        unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
