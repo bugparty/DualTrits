@@ -127,6 +127,8 @@ if(ENABLE_CUDA)
             src/common/DualTrits.cpp
             src/cpu/dual_trits_pack.cpp
             src/cuda/dual_trits_pack.cu)
+    # Set CUDA language for the test file so it can include CUDA headers
+    set_source_files_properties(tests/test_packing_cuda.cpp PROPERTIES LANGUAGE CUDA)
     target_link_libraries(cuda_packing_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
     target_include_directories(cuda_packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
     set_target_properties(cuda_packing_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
