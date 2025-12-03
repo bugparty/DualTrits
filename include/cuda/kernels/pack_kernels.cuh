@@ -72,16 +72,16 @@ __device__ __forceinline__ T mod3_magic(T x) {
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t TritsPerPack, class UInt>
 __global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int n) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int outputIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (idx < n) {
-        DualTrits const * dual_trits = &d_input[idx * TritsPerPack];
+    if (outputIndex < n) {
+        DualTrits const * dual_trits = &d_input[outputIndex * TritsPerPack];
         UInt packed = 0;
         UInt multiplier = 1;
     
         // Encoding order: direction first, then exponent
         for (std::size_t i = 0; i < TritsPerPack; ++i) {
-            const auto& t = dual_trits[i];
+            const auto& t = dual_trits[TritsPerPack - 1 - i];
             
             packed += static_cast<UInt>(t.getDirection()) * multiplier;
             multiplier *= DualTrits::BASE;
@@ -89,7 +89,7 @@ __global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restri
             packed += static_cast<UInt>(t.getExponent()) * multiplier;
             multiplier *= DualTrits::BASE;
         }
-        d_output[idx] = packed;
+        d_output[outputIndex] = packed;
     }
 }
 
@@ -107,8 +107,8 @@ __global__ void unpack_kernel_stride(UInt const* __restrict__ d_input, DualTrits
             packed /= DualTrits::BASE;
             auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
             packed /= DualTrits::BASE;
-            out[i].setDirection(dir);
-            out[i].setExponent(exp);
+            out[TritsPerPack - 1 - i].setDirection(dir);
+            out[TritsPerPack - 1 - i].setExponent(exp);
         }
     }
 
