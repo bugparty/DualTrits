@@ -20,16 +20,20 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+if [ ${OUTPUT_JSON} = false ]; then
+    echo "Building cuda benchmarks in Release mode..."  
+    
+fi  
 
-echo "Building cuda benchmarks in Release mode..."
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MPFR=OFF
-cmake --build build --target packing_cuda_benchmarks
-
-echo ""
-echo "Running cuda benchmarks..."
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MPFR=OFF  > /dev/null
+cmake --build build --target packing_cuda_benchmarks > /dev/null
+if [ ${OUTPUT_JSON} = false ]; then
+    echo ""
+    echo "Running cuda benchmarks..."
+fi
 
 if [ "$OUTPUT_JSON" = true ]; then
-    echo "Outputting results in JSON format..."
+    
     ./build/packing_cuda_benchmarks --benchmark_format=json "${BENCHMARK_ARGS[@]}"
 else
     ./build/packing_cuda_benchmarks "${BENCHMARK_ARGS[@]}"
