@@ -71,11 +71,11 @@ __device__ __forceinline__ T mod3_magic(T x) {
 
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t TritsPerPack, class UInt>
-__global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int n) {
+__global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int outputSize) {
     int outputIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    int startInputIndex = outputIndex * TritsPerPack;
+    int startInputIndex = startOutputIndex * TritsPerPack;
 
-    if (outputIndex < n) {
+    if (outputIndex < outputSize) {
         UInt packed = 0;
         UInt multiplier = 1;
     
