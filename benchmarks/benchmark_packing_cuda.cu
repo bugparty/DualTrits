@@ -22,11 +22,11 @@ static DualTrits randomDualTrits() {
 // ============================================================================
 static void BM_Pack5_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 5;
+    constexpr int TRITS_PER_PACK = 5;
     
     // Allocate and initialize host memory
-    std::vector<DualTrits> h_input(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_input(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_input[i] = randomDualTrits();
     }
     std::vector<std::uint16_t> h_output(N);
@@ -34,25 +34,25 @@ static void BM_Pack5_CUDA(benchmark::State& state) {
     // Allocate device memory
     DualTrits* d_input{};
     std::uint16_t* d_output{};
-    cudaMalloc(&d_input, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_input, N * TRITS_PER_PACK * sizeof(DualTrits));
     cudaMalloc(&d_output, N * sizeof(std::uint16_t));
     
     // Copy input to device
-    cudaMemcpy(d_input, h_input.data(), N * COUNT * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, h_input.data(), N * TRITS_PER_PACK * sizeof(DualTrits), cudaMemcpyHostToDevice);
     
     // Warmup
-    pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, nullptr);
+    pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, &ms);
+        pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0); // Convert to seconds
     }
     
     // Set performance metrics
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (COUNT * sizeof(DualTrits) + sizeof(std::uint16_t)));
+                           (TRITS_PER_PACK * sizeof(DualTrits) + sizeof(std::uint16_t)));
     
     // Cleanup
     cudaFree(d_input);
@@ -71,42 +71,42 @@ BENCHMARK(BM_Pack5_CUDA)
 // ============================================================================
 static void BM_Unpack5_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 5;
+    constexpr int TRITS_PER_PACK = 5;
     
     // Allocate and initialize host memory
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     // Pack data first to get valid input
     std::vector<std::uint16_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint16_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint16_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     // Allocate device memory
     std::uint16_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint16_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     // Copy input to device
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
     
     // Warmup
-    unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint16_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint16_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     
     cudaFree(d_input);
     cudaFree(d_output);
@@ -124,42 +124,42 @@ BENCHMARK(BM_Unpack5_CUDA)
 // ============================================================================
 static void BM_Unpack5_Stride_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 5;
+    constexpr int TRITS_PER_PACK = 5;
     
     // Allocate and initialize host memory
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     // Pack data first to get valid input
     std::vector<std::uint16_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint16_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint16_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     // Allocate device memory
     std::uint16_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint16_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     // Copy input to device
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint16_t), cudaMemcpyHostToDevice);
     
     // Warmup
-    unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint16_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint16_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     
     cudaFree(d_input);
     cudaFree(d_output);
@@ -177,32 +177,32 @@ BENCHMARK(BM_Unpack5_Stride_CUDA)
 // ============================================================================
 static void BM_Pack10_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 10;
+    constexpr int TRITS_PER_PACK = 10;
     
-    std::vector<DualTrits> h_input(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_input(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_input[i] = randomDualTrits();
     }
     std::vector<std::uint32_t> h_output(N);
     
     DualTrits* d_input{};
     std::uint32_t* d_output{};
-    cudaMalloc(&d_input, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_input, N * TRITS_PER_PACK * sizeof(DualTrits));
     cudaMalloc(&d_output, N * sizeof(std::uint32_t));
     
-    cudaMemcpy(d_input, h_input.data(), N * COUNT * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, h_input.data(), N * TRITS_PER_PACK * sizeof(DualTrits), cudaMemcpyHostToDevice);
     
-    pack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, nullptr);
+    pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        pack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, &ms);
+        pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (COUNT * sizeof(DualTrits) + sizeof(std::uint32_t)));
+                           (TRITS_PER_PACK * sizeof(DualTrits) + sizeof(std::uint32_t)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -219,37 +219,37 @@ BENCHMARK(BM_Pack10_CUDA)
 // ============================================================================
 static void BM_Unpack10_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 10;
+    constexpr int TRITS_PER_PACK = 10;
     
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     std::vector<std::uint32_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint32_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint32_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     std::uint32_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint32_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint32_t), cudaMemcpyHostToDevice);
 
-    unpack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint32_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint32_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -266,37 +266,37 @@ BENCHMARK(BM_Unpack10_CUDA)
 // ============================================================================
 static void BM_Unpack10_Stride_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 10;
+    constexpr int TRITS_PER_PACK = 10;
     
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     std::vector<std::uint32_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint32_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint32_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     std::uint32_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint32_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint32_t), cudaMemcpyHostToDevice);
 
-    unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint32_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint32_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint32_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint32_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -313,32 +313,32 @@ BENCHMARK(BM_Unpack10_Stride_CUDA)
 // ============================================================================
 static void BM_Pack20_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 20;
+    constexpr int TRITS_PER_PACK = 20;
     
-    std::vector<DualTrits> h_input(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_input(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_input[i] = randomDualTrits();
     }
     std::vector<std::uint64_t> h_output(N);
     
     DualTrits* d_input{};
     std::uint64_t* d_output{};
-    cudaMalloc(&d_input, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_input, N * TRITS_PER_PACK * sizeof(DualTrits));
     cudaMalloc(&d_output, N * sizeof(std::uint64_t));
     
-    cudaMemcpy(d_input, h_input.data(), N * COUNT * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, h_input.data(), N * TRITS_PER_PACK * sizeof(DualTrits), cudaMemcpyHostToDevice);
     
-    pack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, nullptr);
+    pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        pack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, &ms);
+        pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (COUNT * sizeof(DualTrits) + sizeof(std::uint64_t)));
+                           (TRITS_PER_PACK * sizeof(DualTrits) + sizeof(std::uint64_t)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -355,37 +355,37 @@ BENCHMARK(BM_Pack20_CUDA)
 // ============================================================================
 static void BM_Unpack20_Stride_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 20;
+    constexpr int TRITS_PER_PACK = 20;
     
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     std::vector<std::uint64_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint64_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint64_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     std::uint64_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint64_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint64_t), cudaMemcpyHostToDevice);
 
-    unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_stride_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_stride_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint64_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint64_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -402,37 +402,37 @@ BENCHMARK(BM_Unpack20_Stride_CUDA)
 // ============================================================================
 static void BM_Unpack20_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 20;
+    constexpr int TRITS_PER_PACK = 20;
     
-    std::vector<DualTrits> h_temp(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_temp(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_temp[i] = randomDualTrits();
     }
     
     std::vector<std::uint64_t> h_input(N);
     for (int i = 0; i < N; ++i) {
-        h_input[i] = pack_dual_trits<COUNT, std::uint64_t>(&h_temp[i * COUNT]);
+        h_input[i] = pack_dual_trits<TRITS_PER_PACK, std::uint64_t>(&h_temp[i * TRITS_PER_PACK]);
     }
-    std::vector<DualTrits> h_output(N * COUNT);
+    std::vector<DualTrits> h_output(N * TRITS_PER_PACK);
     
     std::uint64_t* d_input{};
     DualTrits* d_output{};
     cudaMalloc(&d_input, N * sizeof(std::uint64_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
     cudaMemcpy(d_input, h_input.data(), N * sizeof(std::uint64_t), cudaMemcpyHostToDevice);
 
-    unpack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, nullptr);
+    unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, nullptr);
     
     for (auto _ : state) {
         float ms = 0.f;
-        unpack_dual_trits_batch_cuda_device<COUNT, std::uint64_t>(d_input, d_output, N, &ms);
+        unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint64_t>(d_input, d_output, N, &ms);
         state.SetIterationTime(ms / 1000.0);
     }
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (sizeof(std::uint64_t) + COUNT * sizeof(DualTrits)));
+                           (sizeof(std::uint64_t) + TRITS_PER_PACK * sizeof(DualTrits)));
     cudaFree(d_input);
     cudaFree(d_output);
 }
@@ -449,25 +449,25 @@ BENCHMARK(BM_Unpack20_CUDA)
 // ============================================================================
 static void BM_RoundTrip5_CUDA(benchmark::State& state) {
     const int N = static_cast<int>(state.range(0));
-    constexpr int COUNT = 5;
+    constexpr int TRITS_PER_PACK = 5;
     
-    std::vector<DualTrits> h_input(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_input(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_input[i] = randomDualTrits();
     }
     
     DualTrits* d_input{};
     std::uint16_t* d_packed{};
     DualTrits* d_output{};
-    cudaMalloc(&d_input, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_input, N * TRITS_PER_PACK * sizeof(DualTrits));
     cudaMalloc(&d_packed, N * sizeof(std::uint16_t));
-    cudaMalloc(&d_output, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_output, N * TRITS_PER_PACK * sizeof(DualTrits));
     
-    cudaMemcpy(d_input, h_input.data(), N * COUNT * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, h_input.data(), N * TRITS_PER_PACK * sizeof(DualTrits), cudaMemcpyHostToDevice);
     
     // Warmup
-    pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_packed, N, nullptr);
-    unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
+    pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_packed, N, nullptr);
+    unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_packed, d_output, N, nullptr);
     
     for (auto _ : state) {
         cudaEvent_t start, stop;
@@ -475,8 +475,8 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
         cudaEventCreate(&stop);
         
         cudaEventRecord(start);
-        pack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_input, d_packed, N, nullptr);
-        unpack_dual_trits_batch_cuda_device<COUNT, std::uint16_t>(d_packed, d_output, N, nullptr);
+        pack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_input, d_packed, N, nullptr);
+        unpack_dual_trits_batch_cuda_device<TRITS_PER_PACK, std::uint16_t>(d_packed, d_output, N, nullptr);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
@@ -490,7 +490,7 @@ static void BM_RoundTrip5_CUDA(benchmark::State& state) {
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (COUNT * sizeof(DualTrits) * 2 + sizeof(std::uint16_t)));
+                           (TRITS_PER_PACK * sizeof(DualTrits) * 2 + sizeof(std::uint16_t)));
     cudaFree(d_input);
     cudaFree(d_packed);
     cudaFree(d_output);
@@ -509,25 +509,25 @@ BENCHMARK(BM_RoundTrip5_CUDA)
 static void BM_Pack5_VaryBlockSize(benchmark::State& state) {
     const int N = 1 << 20; // 1M elements
     const int blockSize = static_cast<int>(state.range(0));
-    constexpr int COUNT = 5;
+    constexpr int TRITS_PER_PACK = 5;
     
-    std::vector<DualTrits> h_input(N * COUNT);
-    for (int i = 0; i < N * COUNT; ++i) {
+    std::vector<DualTrits> h_input(N * TRITS_PER_PACK);
+    for (int i = 0; i < N * TRITS_PER_PACK; ++i) {
         h_input[i] = randomDualTrits();
     }
     
     DualTrits* d_input{};
     std::uint16_t* d_output{};
-    cudaMalloc(&d_input, N * COUNT * sizeof(DualTrits));
+    cudaMalloc(&d_input, N * TRITS_PER_PACK * sizeof(DualTrits));
     cudaMalloc(&d_output, N * sizeof(std::uint16_t));
     
-    cudaMemcpy(d_input, h_input.data(), N * COUNT * sizeof(DualTrits), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_input, h_input.data(), N * TRITS_PER_PACK * sizeof(DualTrits), cudaMemcpyHostToDevice);
     
     dim3 block(blockSize);
     dim3 grid((N + block.x - 1) / block.x);
     
     // Warmup
-    pack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
+    pack_kernel<TRITS_PER_PACK, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
     cudaDeviceSynchronize();
     
     for (auto _ : state) {
@@ -536,7 +536,7 @@ static void BM_Pack5_VaryBlockSize(benchmark::State& state) {
         cudaEventCreate(&stop);
         
         cudaEventRecord(start);
-        pack_kernel<COUNT, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
+        pack_kernel<TRITS_PER_PACK, std::uint16_t><<<grid, block>>>(d_input, d_output, N);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         
@@ -550,7 +550,7 @@ static void BM_Pack5_VaryBlockSize(benchmark::State& state) {
     
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * N);
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * N * 
-                           (COUNT * sizeof(DualTrits) + sizeof(std::uint16_t)));
+                           (TRITS_PER_PACK * sizeof(DualTrits) + sizeof(std::uint16_t)));
     cudaFree(d_input);
     cudaFree(d_output);
 }

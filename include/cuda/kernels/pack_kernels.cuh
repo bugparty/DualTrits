@@ -68,27 +68,25 @@ template<typename T>
 __device__ __forceinline__ T mod3_magic(T x) {
     return div3_magic_traits<T>::mod(x);
 }
+
 // Kernel: pack batch of dual-trits arrays
 template <std::size_t TritsPerPack, class UInt>
-__global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int n) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if (idx < n) {
-        DualTrits const * dual_trits = &d_input[idx * TritsPerPack];
+__global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int outputSize) {
+    int outputIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    int startInputIndex = outputIndex * TritsPerPack;
+
+    if (outputIndex < outputSize) {
         UInt packed = 0;
         UInt multiplier = 1;
     
-        // Encoding order: direction first, then exponent
-        for (std::size_t i = 0; i < TritsPerPack; ++i) {
-            const auto& t = dual_trits[i];
-            
-            packed += static_cast<UInt>(t.getDirection()) * multiplier;
-            multiplier *= DualTrits::BASE;
-            
-            packed += static_cast<UInt>(t.getExponent()) * multiplier;
-            multiplier *= DualTrits::BASE;
+        // Pack each trit with its multiplier and sum it all
+        for (std::size_t dualTritIndex = 0; dualTritIndex < TritsPerPack; ++dualTritIndex) {
+            int inputOffset = TritsPerPack - 1 - dualTritIndex;
+
+            packed += multiplier * d_input[startInputIndex + inputOffset].asRawPackedBits();
+            multiplier *= DualTrits::BASE * DualTrits::BASE;
         }
-        d_output[idx] = packed;
+        d_output[outputIndex] = packed;
     }
 }
 
@@ -106,8 +104,8 @@ __global__ void unpack_kernel_stride(UInt const* __restrict__ d_input, DualTrits
             packed /= DualTrits::BASE;
             auto exp = static_cast<std::uint16_t>(packed % DualTrits::BASE);
             packed /= DualTrits::BASE;
-            out[i].setDirection(dir);
-            out[i].setExponent(exp);
+            out[TritsPerPack - 1 - i].setDirection(dir);
+            out[TritsPerPack - 1 - i].setExponent(exp);
         }
     }
 
