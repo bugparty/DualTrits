@@ -73,21 +73,18 @@ __device__ __forceinline__ T mod3_magic(T x) {
 template <std::size_t TritsPerPack, class UInt>
 __global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int n) {
     int outputIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    int startInputIndex = outputIndex * TritsPerPack;
 
     if (outputIndex < n) {
-        DualTrits const * dual_trits = &d_input[outputIndex * TritsPerPack];
         UInt packed = 0;
         UInt multiplier = 1;
     
-        // Encoding order: direction first, then exponent
-        for (std::size_t i = 0; i < TritsPerPack; ++i) {
-            const auto& t = dual_trits[TritsPerPack - 1 - i];
-            
-            packed += static_cast<UInt>(t.getDirection()) * multiplier;
-            multiplier *= DualTrits::BASE;
-            
-            packed += static_cast<UInt>(t.getExponent()) * multiplier;
-            multiplier *= DualTrits::BASE;
+        // Pack each trit with its multiplier and sum it all
+        for (std::size_t dualTritIndex = 0; dualTritIndex < TritsPerPack; ++dualTritIndex) {
+            int inputOffset = TritsPerPack - 1 - dualTritIndex;
+
+            packed += multiplier * d_input[startInputIndex + inputOffset].asRawPackedBits();
+            multiplier *= DualTrits::BASE * DualTrits::BASE;
         }
         d_output[outputIndex] = packed;
     }
