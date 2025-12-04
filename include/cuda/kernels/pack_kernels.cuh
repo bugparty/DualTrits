@@ -73,7 +73,7 @@ __device__ __forceinline__ T mod3_magic(T x) {
 template <std::size_t TritsPerPack, class UInt>
 __global__ void pack_kernel(DualTrits const*__restrict__ d_input, UInt* __restrict__ d_output, int outputSize) {
     int outputIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    int startInputIndex = startOutputIndex * TritsPerPack;
+    int startInputIndex = outputIndex * TritsPerPack;
 
     if (outputIndex < outputSize) {
         UInt packed = 0;
