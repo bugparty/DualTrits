@@ -92,7 +92,7 @@ std::vector<UInt> batch_pack_dual_trits(DualTrits const dual_trits[], size_t n) 
 
         #pragma omp section
         {
-            #pragma omp parallel for schedule(static, Count)
+            #pragma omp parallel for schedule(static, TritsPerPack)
             for (size_t packIndex = 1; packIndex < totalPacks; packIndex++) {
                 packed[packIndex] = pack_dual_trits<TritsPerPack, UInt>(offset + ((packIndex - 1) * TritsPerPack) + dual_trits);
             }
