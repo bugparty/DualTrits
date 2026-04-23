@@ -1,0 +1,41 @@
+name: ROCm CI
+
+on:
+  push:
+    branches: ["main", "master", "features/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rocm-ci:
+    name: ROCm Build & Test
+    runs-on: [self-hosted, rocm]
+    environment: dualtrit
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check ROCm installation
+        run: |
+          echo "Checking ROCm installation..."
+          hipcc --version
+          rocm-smi
+
+      - name: Configure (Release)
+        run: |
+          cmake -S . -B build_hip \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDUALTRITS_GPU_BACKEND=HIP
+
+      - name: Build project and HIP tests
+        run: cmake --build build_hip --config Release --target project_float hip_packing_tests
+
+      - name: Run HIP tests
+        run: ctest --test-dir build_hip --output-on-failure -R HipPack
+
+      - name: Display GPU info
+        if: always()
+        run: |
+          echo "GPU Information:"
+          rocm-smi --showproductname --showdriverversion --showmeminfo vram

@@ -3,16 +3,54 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 project(project_float LANGUAGES CXX)
 
-# Optional CUDA support
+# ---------------------------------------------------------------------------
+# GPU backend selection
+# Values: AUTO (default) – try CUDA then HIP
+#         CUDA  – require CUDA, skip HIP
+#         HIP   – require HIP/ROCm, skip CUDA
+#         NONE  – CPU-only build
+# ---------------------------------------------------------------------------
+set(DUALTRITS_GPU_BACKEND "AUTO" CACHE STRING
+    "GPU backend to use: AUTO, CUDA, HIP, NONE")
+set_property(CACHE DUALTRITS_GPU_BACKEND PROPERTY STRINGS AUTO CUDA HIP NONE)
+message(STATUS "GPU backend requested: ${DUALTRITS_GPU_BACKEND}")
+
 include(CheckLanguage)
-check_language(CUDA)
-if(CMAKE_CUDA_COMPILER)
-    enable_language(CUDA)
-    set(ENABLE_CUDA ON)
-    message(STATUS "CUDA support enabled")
-else()
-    set(ENABLE_CUDA OFF)
-    message(STATUS "CUDA not found, building CPU-only version")
+
+# CUDA detection
+set(ENABLE_CUDA OFF)
+if(DUALTRITS_GPU_BACKEND STREQUAL "CUDA" OR DUALTRITS_GPU_BACKEND STREQUAL "AUTO")
+    check_language(CUDA)
+    if(CMAKE_CUDA_COMPILER)
+        enable_language(CUDA)
+        set(ENABLE_CUDA ON)
+        message(STATUS "CUDA support enabled")
+    elseif(DUALTRITS_GPU_BACKEND STREQUAL "CUDA")
+        message(FATAL_ERROR "CUDA backend requested but no CUDA compiler found")
+    else()
+        message(STATUS "CUDA not found")
+    endif()
+endif()
+
+# HIP/ROCm detection
+set(ENABLE_HIP OFF)
+if(NOT ENABLE_CUDA)
+    if(DUALTRITS_GPU_BACKEND STREQUAL "HIP" OR DUALTRITS_GPU_BACKEND STREQUAL "AUTO")
+        check_language(HIP)
+        if(CMAKE_HIP_COMPILER)
+            enable_language(HIP)
+            set(ENABLE_HIP ON)
+            message(STATUS "HIP/ROCm support enabled")
+        elseif(DUALTRITS_GPU_BACKEND STREQUAL "HIP")
+            message(FATAL_ERROR "HIP backend requested but no HIP compiler found")
+        else()
+            message(STATUS "HIP not found, building CPU-only version")
+        endif()
+    endif()
+endif()
+
+if(NOT ENABLE_CUDA AND NOT ENABLE_HIP)
+    message(STATUS "No GPU backend active – building CPU-only version")
 endif()
 set(CMAKE_CXX_STANDARD 20)
 
@@ -47,6 +85,11 @@ if(ENABLE_CUDA)
     include_directories(${CMAKE_SOURCE_DIR}/include/cuda)
     # Configure a header file to pass CUDA availability to source code
     add_compile_definitions(HAVE_CUDA)
+endif()
+
+if(ENABLE_HIP)
+    include_directories(${CMAKE_SOURCE_DIR}/include/hip)
+    add_compile_definitions(HAVE_HIP)
 endif()
 
 add_executable(project_float 
@@ -136,6 +179,20 @@ if(ENABLE_CUDA)
     gtest_discover_tests(cuda_packing_tests)
 endif()
 
+if(ENABLE_HIP)
+    add_executable(hip_packing_tests
+            tests/test_packing_hip.hip
+            src/common/DualTrits.cpp
+            src/cpu/dual_trits_pack.cpp
+            src/hip/dual_trits_pack.hip)
+    target_link_libraries(hip_packing_tests PRIVATE GTest::gtest GTest::gtest_main ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+    target_include_directories(hip_packing_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
+    set_target_properties(hip_packing_tests PROPERTIES
+            HIP_SEPARABLE_COMPILATION ON
+            HIP_ARCHITECTURES "gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101")
+    gtest_discover_tests(hip_packing_tests)
+endif()
+
 # =========================
 # Benchmarks with Google Benchmark
 # =========================
@@ -158,4 +215,17 @@ if(ENABLE_CUDA)
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_ARCHITECTURES "75;80;86;89")
     target_compile_options(packing_cuda_benchmarks PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-expt-relaxed-constexpr>)
+endif()
+
+# HIP/ROCm Benchmarks
+if(ENABLE_HIP)
+    add_executable(packing_hip_benchmarks
+            benchmarks/benchmark_packing_hip.hip
+            src/common/DualTrits.cpp
+            src/hip/dual_trits_pack.hip)
+    target_link_libraries(packing_hip_benchmarks PRIVATE benchmark::benchmark ${MPFR_LIBRARIES} ${GMP_LIBRARIES})
+    target_include_directories(packing_hip_benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
+    set_target_properties(packing_hip_benchmarks PROPERTIES
+            HIP_SEPARABLE_COMPILATION ON
+            HIP_ARCHITECTURES "gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101")
 endif()

@@ -1,0 +1,84 @@
+name: ROCm Benchmark
+permissions:
+  actions: write
+  contents: read
+on:
+  push:
+    branches: ["main", "master", "features/**"]
+  pull_request:
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  benchmark_rocm:
+    name: ROCm Benchmark
+    runs-on: [self-hosted, rocm]
+    environment: dualtrit
+    env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check ROCm installation
+        run: |
+          echo "Checking ROCm installation..."
+          hipcc --version
+          rocm-smi
+
+      - name: Configure CMake (Release)
+        run: |
+          cmake -S . -B build_hip \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_MPFR=OFF \
+            -DDUALTRITS_GPU_BACKEND=HIP
+
+      - name: Build HIP benchmarks
+        run: cmake --build build_hip --target packing_hip_benchmarks --config Release
+
+      - name: Run HIP benchmarks
+        run: |
+          ./build_hip/packing_hip_benchmarks --benchmark_format=json | tee benchmark_results.json
+
+      - name: Compare and Update Benchmarks
+        run: |
+          VAR_PREV="PREV_BENCHMARK_JSON_ROCM"
+          VAR_BEST="BEST_BENCHMARK_JSON_ROCM"
+          VAR_SHA="BEST_BENCHMARK_SHA_ROCM"
+
+          echo "Target: ROCm"
+          echo "Using variables: $VAR_PREV, $VAR_BEST, $VAR_SHA"
+
+          export PREV_BENCHMARK_JSON=$(gh variable get $VAR_PREV --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_JSON=$(gh variable get $VAR_BEST --json value -q .value 2>/dev/null || echo "")
+          export BEST_BENCHMARK_SHA=$(gh variable get $VAR_SHA --json value -q .value 2>/dev/null || echo "")
+
+          python3 .github/scripts/compare_benchmarks.py
+
+          if [ -f next_prev_benchmark.json ]; then
+            echo "Updating $VAR_PREV..."
+            gh variable set $VAR_PREV < next_prev_benchmark.json
+          fi
+
+          if [ -f next_best_benchmark.json ]; then
+            echo "Updating $VAR_BEST..."
+            gh variable set $VAR_BEST < next_best_benchmark.json
+
+            if [ -f next_best_sha.txt ]; then
+               echo "Updating $VAR_SHA..."
+               gh variable set $VAR_SHA < next_best_sha.txt
+            fi
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-rocm
+          path: benchmark_results.json
+          retention-days: 30
+
+      - name: Display GPU info
+        if: always()
+        run: |
+          echo "GPU Information:"
+          rocm-smi --showproductname --showdriverversion --showmeminfo vram
