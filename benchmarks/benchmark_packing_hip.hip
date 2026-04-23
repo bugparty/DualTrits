@@ -8,7 +8,6 @@
 #include "hip/kernels/pack_kernels.h"
 
 // Random number generator for creating test data
-static std::random_device rd;
 static std::mt19937 gen([]{ std::random_device r; return r(); }());
 static std::uniform_int_distribution<> dis(0, 2);
 

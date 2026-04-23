@@ -67,7 +67,10 @@ void pack_dual_trits_batch_hip(DualTrits const* h_input, UInt* h_output, int n) 
 
     pack_dual_trits_batch_hip_device<TritsPerPack, UInt>(d_input, d_output, n, nullptr);
 
-    hipMemcpy(h_output, d_output, n * sizeof(UInt), hipMemcpyDeviceToHost);
+    err = hipMemcpy(h_output, d_output, n * sizeof(UInt), hipMemcpyDeviceToHost);
+    if (err != hipSuccess) {
+        fprintf(stderr, "hipMemcpy (DeviceToHost) failed: %s\n", hipGetErrorString(err));
+    }
 
     hipFree(d_input);
     hipFree(d_output);
@@ -146,11 +149,20 @@ void unpack_dual_trits_batch_hip(UInt const* h_input, DualTrits* h_output, int n
     hipMalloc(&d_input, n * sizeof(UInt));
     hipMalloc(&d_output, n * TritsPerPack * sizeof(DualTrits));
 
-    hipMemcpy(d_input, h_input, n * sizeof(UInt), hipMemcpyHostToDevice);
+    hipError_t err = hipMemcpy(d_input, h_input, n * sizeof(UInt), hipMemcpyHostToDevice);
+    if (err != hipSuccess) {
+        fprintf(stderr, "hipMemcpy (HostToDevice) failed: %s\n", hipGetErrorString(err));
+        hipFree(d_input);
+        hipFree(d_output);
+        return;
+    }
 
     unpack_dual_trits_stride_batch_hip_device<TritsPerPack, UInt>(d_input, d_output, n, nullptr);
 
-    hipMemcpy(h_output, d_output, n * TritsPerPack * sizeof(DualTrits), hipMemcpyDeviceToHost);
+    err = hipMemcpy(h_output, d_output, n * TritsPerPack * sizeof(DualTrits), hipMemcpyDeviceToHost);
+    if (err != hipSuccess) {
+        fprintf(stderr, "hipMemcpy (DeviceToHost) failed: %s\n", hipGetErrorString(err));
+    }
 
     hipFree(d_input);
     hipFree(d_output);
